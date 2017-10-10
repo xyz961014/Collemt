@@ -1,16 +1,16 @@
 <view class="view-textarea">
   <view class="view-textID">
-    <text class='textID'>textID:{{textID}}</text>
-    <text class="textdur">targetdur:{{textdur}}ms</text>
+    <text class='textID'>textID:{{text.textID}}</text>
+    <text class="textdur">targetdur:{{text.textdur}}ms</text>
   </view>
   <view class="view-text">
-    <text class='text'>{{text}}</text>
+    <text class='text'>{{text.text}}</text>
   </view>
 </view>
 <button wx:if="{{recordingbool}}" size='mini' type='warn' bindtap='stopbuttontap'>stop</button>
 <button wx:else class="button-record" size='mini' type='primary' bindtap='recordbuttontap'>record</button>
 <view class="view-timer">
-<text class="text-timer"> {{durstring}} s</text>
+<text class="text-timer"> {{view.durstring}} s</text>
 </view>
 <view class='view-voice'>
   <button size='mini' type='primary' bindtap='playvoice'>play</button>

@@ -1,25 +1,26 @@
 const app = getApp();
 const util = require('../../utils/util.js')
+//计时函数
 var Timerstart = function(){
   var curP = getCurrentPages();
-  var thisp = curP[curP.length - 1];
+  var thisp = curP[curP.length - 1];//获取当前页面
   var timerID = setInterval(function () {
     thisp.setData({
-      ms: thisp.data.ms + 10
-    })
-    if (thisp.data.ms === 1000) {
+      'view.ms': thisp.data.view.ms + 10
+    });//每隔10ms更新数据
+    if (thisp.data.view.ms === 1000) {
       thisp.setData({
-        second: thisp.data.second + 1,
-        ms: 0
+        'view.second': thisp.data.view.second + 1,
+        'view.ms': 0
       })
     }
     thisp.setData({
-      durstring: util.timestring(thisp.data.second, thisp.data.ms)
-    })
+      'view.durstring': util.timestring(thisp.data.view.second, thisp.data.view.ms)
+    });//得到输出的时间字符串
   }, 10);
   thisp.setData({
-    TimerID: timerID
-  })
+    'view.TimerID': timerID
+  })//存储计时器ID，之后停的时候用
 };
 
 Page({
@@ -28,20 +29,26 @@ Page({
    * 页面的初始数据
    */
   data: {
-    text: "hahaha",
-    textID: 0,
-    time: "",
-    duration: 0,
-    TimerID: 0,
-    textdur: 0,
-    score: 0,
-    savepath: "",
-    uploadurl: "",
-    hasUserInfo: false,
-    second: 0,
-    ms: 0,
-    durstring: "0.000",
-    recordingbool: false
+    text:{
+      text: "",//文本
+      textID: 0,//文本ID
+      textdur: 0,//文本建议时长
+      uploadurl: "" //上传路径
+    },
+    record: {
+      time: "", // 录制时间
+      duration: 0, //录制时长
+      score: 0, //得分
+      savepath: "", //录音文件的保存路径
+    },
+    view: {
+      second: 0, // 秒数
+      ms: 0, //毫秒数
+      TimerID: 0, //计时器ID
+      durstring: "0.000" //计时字符串
+    },
+    hasUserInfo: false, //是否获取用户信息
+    recordingbool: false //是否正在录音
   },
   recordbuttontap: function(){
     wx.getSetting({
@@ -51,40 +58,48 @@ Page({
             scope: 'scope.record',
             success() {
               // 用户已经同意小程序使用录音功能，后续调用 wx.startRecord 接口不会弹窗询问
-
+              var curP = getCurrentPages();
+              var thisp = curP[curP.length - 1];
               wx.startRecord({
                 success: function(res) {
-                  var curP = getCurrentPages();
-                  var thisp = curP[curP.length - 1];
+                  
                   wx.saveFile({
                     tempFilePath: res.tempFilePath,
                     success: function (res) {
+                      //成功调用时保存文件路径
                       thisp.setData({
-                        savepath: res.savedFilePath
+                        'record.savepath': res.savedFilePath
                       })
                     }
                   });
                 }
               });
-              var TimerID = Timerstart();                           
+              thisp.setData({
+                recordingbool: true
+              });
+              Timerstart();                       
             }
           })
         } else {
+          var curP = getCurrentPages();
+          var thisp = curP[curP.length - 1];
           wx.startRecord({
             success: function (res) {
-              var curP = getCurrentPages();
-              var thisp = curP[curP.length - 1];
               wx.saveFile({
                 tempFilePath: res.tempFilePath,
                 success: function(res) {
+                  //成功调用时保存文件路径
                   thisp.setData({
-                    savepath: res.savedFilePath
+                    'record.savepath': res.savedFilePath,
                   })
                 }
               });
             }
           });
-          var timerID = Timerstart();
+          thisp.setData({
+            recordingbool: true
+          });
+          Timerstart();
         }
       }
     });
@@ -94,22 +109,22 @@ Page({
   },
   stopbuttontap: function() {
     wx.stopRecord()
-    clearInterval(this.data.TimerID);//停止计时
+    clearInterval(this.data.view.TimerID);//停止计时
     //保存本次数据
     this.setData({
       recordingbool: false,
-      duration: this.data.second + this.data.ms / 1000,
-      time: util.formatTime(new Date(Date.now())),
-      score: this.data.textdur - Math.abs(1000 * this.data.second + this.data.ms -this.data.textdur) * 0.8     
+      'record.duration': this.data.view.second + this.data.view.ms / 1000,
+      'record.time': util.formatTime(new Date(Date.now())),
+      'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms -this.data.text.textdur) * 0.8     
     })
-    wx.getFileInfo({
-      filePath: this.data.savepath,
+    /*wx.getFileInfo({
+      filePath: this.data.record.savepath,
       success: function(res) {
         console.log(res.size)
       }
-    })
-    if (this.data.score < 0.6 * this.data.textdur){
-      //录音时长不符合要求打回去
+    })*/
+    if (this.data.record.score < 0.6 * this.data.text.textdur){
+      //录音时长不符合要求打回去,目前设置的要求是0.5-1.5倍文本建议时长
       wx.showModal({
         title: 'Warn',
         content: 'out of range(0.5dur~1.5dur)',
@@ -118,17 +133,17 @@ Page({
           var curP = getCurrentPages();
           var thisp = curP[curP.length - 1];
           wx.removeSavedFile({
-            filePath: thisp.data.savepath,
+            filePath: thisp.data.record.savepath,
           })
           thisp.setData({
-            time: "",
-            savepath: "",
-            duration: 0,
-            TimerID: 0,
-            score: 0,
-            second: 0,
-            ms: 0,
-            durstring: "0.000"
+            'record.time': "",
+            'record.savepath': "",
+            'record.duration': 0,
+            'record.score': 0,
+            'view.TimerID': 0,
+            'view.second': 0,
+            'view.ms': 0,
+            'view.durstring': "0.000"
           })
         }
       })
@@ -137,14 +152,14 @@ Page({
   },
   playvoice: function() {
     wx.playVoice({
-      filePath: this.data.savepath
+      filePath: this.data.record.savepath
     })
   },
   pausevoice: function () {
-
+    wx.pauseVoice();
   },
   stopvoice: function () {
-
+    wx.stopVoice();
   },
   /**
    * 生命周期函数--监听页面加载
@@ -171,9 +186,6 @@ Page({
       })
     }
     if (!this.data.hasUserInfo) {
-      this.setData({
-        text: "45121"
-      })
       wx.showModal({
         title: 'UserInfoErr',
         content: 'pls login first',
@@ -187,10 +199,10 @@ Page({
     } else {
       //加载语料信息
       this.setData({
-        text: "我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译",
-        textID: 1,
-        textdur: 10000,
-        uploadurl: "null"
+        'text.text': "我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译",
+        'text.textID': 1,
+        'text.textdur': 10000,
+        'text.uploadurl': "null"
       });
     }
   },
