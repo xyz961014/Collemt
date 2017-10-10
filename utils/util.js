@@ -8,7 +8,7 @@ const formatTime = date => {
 
   return [year, month, day].map(formatNumber).join('/') + ' ' + [hour, minute, second].map(formatNumber).join(':')
 }
-
+//输出计时字符串的函数
 var timestring = function(sec,ms) {
   if(ms >= 100) {
     return sec.toString() + '.' + ms.toString();
