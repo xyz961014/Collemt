@@ -1,6 +1,43 @@
 <!--logs.wxml-->
-<view class="container log-list">
-  <block wx:for="{{logs}}" wx:for-item="log">
-    <text class="log-item">{{index + 1}}. {{log}}</text>
-  </block>
+<view class="page">
+  <view class="weui-form-preview">
+            <view class="weui-form-preview__hd">
+                <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">得分</view>
+                    <view class="weui-form-preview__value_in-hd">{{infoout.record.score}}</view>
+                </view>
+            </view>
+            <view class="weui-form-preview__bd">
+                <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">文本</view>
+                    <view class="weui-form-preview__value">{{infoout.text.text}}</view>
+                </view>
+                <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">文本推荐时长</view>
+                    <view class="weui-form-preview__value">{{infoout.text.textdur / 1000}}s</view>
+                </view>
+                <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">录音时间</view>
+                    <view class="weui-form-preview__value">{{infoout.record.time}}</view>
+                </view>
+                <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">录音时长</view>
+                    <view class="weui-form-preview__value">{{infoout.record.duration}}s</view>
+                </view>
+                    <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">上传状态</view>
+                    <view wx:if="{{infoout.record.uploaded}}" class="weui-form-preview__value">已上传</view>
+                    <view wx:else class="weui-form-preview__value">未上传</view>
+                </view>
+            </view>
+            <view class="weui-form-preview__ft">
+                <view wx:if="{{isplay}}" bindtap='stoptap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">停止</view>
+            <view wx:else bindtap='playtap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">播放</view>
+            <view bindtap='rerecordtap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">重新录音</view>
+            </view>
+            <view class="weui-form-preview__ft">
+                <view bindtap='uploadtap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">上传</view>
+
+            </view>
+        </view>
 </view>

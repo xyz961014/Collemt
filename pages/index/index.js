@@ -17,14 +17,10 @@ Page({
     recordingdone: [],
     userInfo: {},
     hasUserInfo: false,
+    history: [],
     canIUse: wx.canIUse('button.open-type.getUserInfo')
   },
   //事件处理函数
-  bindViewTap: function() {
-    wx.navigateTo({
-      url: '../logs/logs'
-    })
-  },
   onLoad: function () {
     if (app.globalData.userInfo) {
       this.setData({
@@ -52,10 +48,32 @@ Page({
         }
       })
     }
+    //匹配的用户信息向本地缓存中传入历史记录
+
+  },
+  historytap: function(e) {
+    var num = wx.setStorageSync('num', e.currentTarget.dataset.num);
+    wx.navigateTo({
+      url: '/pages/logs/logs'
+    })
+  },
+  onShow: function() {
+    //从globalData同步历史数据
+    this.setData({
+      history: wx.getStorageSync('history')
+    })
+    var scor = 0;
+    for (var i of wx.getStorageSync('history')) {
+      if(i.record.uploaded) {
+        scor += i.record.score;
+      }
+    }
+    this.setData({
+      score: scor
+    })
   },
   getUserInfo: function(e) {
-    console.log(e)
-    app.globalData.userInfo = e.detail.userInfo
+    app.globalData.userInfo = e.detail.userInfo;
     this.setData({
       userInfo: e.detail.userInfo,
       hasUserInfo: true

@@ -1,9 +1,9 @@
 <!--index.wxml-->
-<view class="container">
+<view class="page">
   <view class="userinfo">
     <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 登录 </button>
     <block wx:else>
-      <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>
+      <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>
       <text class="userinfo-nickname">{{userInfo.nickName}}</text>
       <text class='user-score'>得分：{{score}}</text>
       <block wx:for="{{recordingdone}}">
@@ -11,6 +11,18 @@
         </view>
       </block>
     </block>
+  </view>
+
+  <view class="weui-panel weui-panel_access">
+            <view class="weui-panel__hd">history</view>
+            <view class="weui-panel__bd">
+            <block wx:for="{{history}}">
+                <view class="weui-media-box weui-media-box_text" data-num='{{index}}' bindtap='historytap'>
+                    <view class="weui-media-box__title weui-media-box__title_in-text">{{item.text.textID}}</view>
+                    <view class="weui-media-box__desc">{{item.record.time}}</view>
+                </view>
+            </block>
+            </view>
   </view>
 
 </view>

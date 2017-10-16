@@ -14,6 +14,9 @@ var Timerstart = function(){
         'view.ms': 0
       })
     }
+    if (thisp.data.view.second === 60) {
+      thisp.stopbuttontap();
+    }
     thisp.setData({
       'view.durstring': util.timestring(thisp.data.view.second, thisp.data.view.ms)
     });//得到输出的时间字符串
@@ -40,6 +43,7 @@ Page({
       duration: 0, //录制时长
       score: 0, //得分
       savepath: "", //录音文件的保存路径
+      uploaded: false // 是否已经上传
     },
     view: {
       second: 0, // 秒数
@@ -150,6 +154,30 @@ Page({
     } 
 
   },
+  resetbuttontap: function() {
+    if (this.data.recordingbool) {
+      wx.stopRecord();
+      clearInterval(this.data.view.TimerID);
+      this.setData({
+        recordingbool: false
+      })
+    }
+    wx.removeSavedFile({
+      filePath: this.data.record.savepath,
+    })
+    this.setData({
+      'record.time': "",
+      'record.savepath': "",
+      'record.duration': 0,
+      'record.score': 0,
+      'record.uploaded': false,
+      'view.TimerID': 0,
+      'view.second': 0,
+      'view.ms': 0,
+      'view.durstring': "0.000"
+    })
+
+  },
   playvoice: function() {
     wx.playVoice({
       filePath: this.data.record.savepath
@@ -160,6 +188,56 @@ Page({
   },
   stopvoice: function () {
     wx.stopVoice();
+  },
+  savebuttontap: function() {
+
+  var history = wx.getStorageSync('history') || [];
+  if (this.data.record.duration !== 0) {
+      var dellist = [];
+      for (var i = history.length - 1; i >= 0; i--) {
+        //console.log(history.length);
+        if (history[i].text.textID === this.data.text.textID) {
+          history.splice(i, 1);
+        }
+      }
+      history.unshift({
+          text: this.data.text,
+          record: this.data.record
+      });
+
+
+      wx.setStorageSync('history', history);
+      wx.showToast({
+        title: '保存成功',
+      });
+    }
+    else {
+      wx.showModal({
+        title: 'Error',
+        content: '尚未录音，不能保存',
+        showCancel: false
+      })
+    }
+    console.log(history.length);
+    /*var saveinfo = {
+      text: this.data.text,
+      record: this.data.record
+    };
+    //saveinfo.text = this.data.text;
+    //saveinfo.record = this.data.record;
+    console.log(saveinfo);
+    app.globalData.history.unshift(saveinfo);
+    console.log(app.globalData.history);*/
+  },
+  uploadbuttontap: function () {
+    //上传录音资料，包括globaldata中的code来获取用户的openid
+    wx.showToast({
+      title: '假的上传成功',
+    })
+    this.setData({
+      'record.uploaded': true
+    })
+    this.savebuttontap();
   },
   /**
    * 生命周期函数--监听页面加载
@@ -197,13 +275,40 @@ Page({
         }
       })
     } else {
-      //加载语料信息
+      //初始化
+      wx.removeSavedFile({
+        filePath: this.data.record.savepath,
+      })
       this.setData({
-        'text.text': "我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译我爱语音翻译",
-        'text.textID': 1,
-        'text.textdur': 10000,
-        'text.uploadurl': "null"
-      });
+        'record.time': "",
+        'record.savepath': "",
+        'record.duration': 0,
+        'record.score': 0,
+        'record.uploaded': false,
+        'view.TimerID': 0,
+        'view.second': 0,
+        'view.ms': 0,
+        'view.durstring': "0.000"
+      })
+      //判断是否是重录
+      var rerecordbool = wx.getStorageSync('rerecordbool');
+      var textinfo = wx.getStorageSync('textinfo');
+      wx.setStorageSync('rerecordbool', false);
+      if (rerecordbool) {
+        this.setData({
+          text: textinfo
+        })
+      } 
+      else {
+      //加载语料信息
+      var text = util.randomWord(true,20,100);
+        this.setData({
+          'text.text': text[0],
+          'text.textID': text[1],
+          'text.textdur': text[0].length * 100,
+          'text.uploadurl': "null"
+        });
+      }
     }
   },
 
