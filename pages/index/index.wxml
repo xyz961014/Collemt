@@ -12,9 +12,15 @@
       </block>
     </block>
   </view>
-
+<view class="weui-cells__title"> 存储空间 </view>
+        <view class="weui-progress">
+            <view class="weui-progress__bar">
+                <progress percent="{{percentage}}" stroke-width="3" />
+            </view>
+        </view>
+<view class="weui-cells__title">{{percentage}}%已用</view>
   <view class="weui-panel weui-panel_access">
-            <view class="weui-panel__hd">history</view>
+            <view class="weui-panel__hd">历史记录</view>
             <view class="weui-panel__bd">
             <block wx:for="{{history}}">
                 <view class="weui-media-box weui-media-box_text" data-num='{{index}}' bindtap='historytap'>

@@ -9,6 +9,10 @@
             </view>
             <view class="weui-form-preview__bd">
                 <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">文本编号</view>
+                    <view class="weui-form-preview__value">{{infoout.text.textID}}</view>
+                </view>
+                <view class="weui-form-preview__item">
                     <view class="weui-form-preview__label">文本</view>
                     <view class="weui-form-preview__value">{{infoout.text.text}}</view>
                 </view>
@@ -23,6 +27,10 @@
                 <view class="weui-form-preview__item">
                     <view class="weui-form-preview__label">录音时长</view>
                     <view class="weui-form-preview__value">{{infoout.record.duration}}s</view>
+                </view>
+                <view class="weui-form-preview__item">
+                    <view class="weui-form-preview__label">大小</view>
+                    <view class="weui-form-preview__value">{{size}}KB</view>
                 </view>
                     <view class="weui-form-preview__item">
                     <view class="weui-form-preview__label">上传状态</view>

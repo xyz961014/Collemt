@@ -13,11 +13,11 @@
   "tabBar": {
     "list": [{
       "pagePath": "pages/index/index",
-      "text": "index"
+      "text": "休息区"
     },
     {
       "pagePath": "pages/studio/studio",
-      "text": "studio"
+      "text": "录音棚"
     }],
     "color": "#000000",
     "selectedColor": "#09BB07",

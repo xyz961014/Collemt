@@ -18,7 +18,9 @@ Page({
     userInfo: {},
     hasUserInfo: false,
     history: [],
-    canIUse: wx.canIUse('button.open-type.getUserInfo')
+    percentage: 0,
+    canIUse: wx.canIUse('button.open-type.getUserInfo'),
+
   },
   //事件处理函数
   onLoad: function () {
@@ -63,13 +65,18 @@ Page({
       history: wx.getStorageSync('history')
     })
     var scor = 0;
+    var usage = 0;
     for (var i of wx.getStorageSync('history')) {
       if(i.record.uploaded) {
         scor += i.record.score;
       }
+      if(i.record.savepath){
+        usage += i.record.size;
+      }
     }
     this.setData({
-      score: scor
+      score: scor,
+      percentage: (usage / 102.4).toFixed(1)
     })
   },
   getUserInfo: function(e) {

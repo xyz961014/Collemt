@@ -1,0 +1,3 @@
+.weui-form-preview__btn_stop{
+  color: red;
+  }

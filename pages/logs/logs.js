@@ -6,7 +6,8 @@ Page({
     info: {},
     num: null,
     infoout: {},
-    isplay: false
+    isplay: false,
+    size: ""
   },
   onShow: function () {
     this.setData({
@@ -14,7 +15,8 @@ Page({
       info: wx.getStorageSync('history')
     });
     this.setData({
-      infoout: this.data.info[this.data.num]
+      infoout: this.data.info[this.data.num],
+      size: this.data.info[this.data.num].record.size.toFixed(2)
     });
     wx.setStorageSync('rerecordbool', false);
   },

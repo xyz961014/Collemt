@@ -43,6 +43,7 @@ Page({
       duration: 0, //录制时长
       score: 0, //得分
       savepath: "", //录音文件的保存路径
+      size: 0, //文件大小
       uploaded: false // 是否已经上传
     },
     view: {
@@ -74,6 +75,14 @@ Page({
                       thisp.setData({
                         'record.savepath': res.savedFilePath
                       })
+                      wx.getFileInfo({
+                        filePath: res.savedFilePath,
+                        success: function (e) {
+                          thisp.setData({
+                            'record.size': e.size / 1024
+                          })
+                        }
+                      })
                     }
                   });
                 }
@@ -96,6 +105,15 @@ Page({
                   thisp.setData({
                     'record.savepath': res.savedFilePath,
                   })
+                  //得到录音文件大小
+                  wx.getFileInfo({
+                    filePath: res.savedFilePath,
+                    success: function(e) {
+                      thisp.setData({
+                        'record.size': e.size / 1024
+                      })
+                    }
+                  })
                 }
               });
             }
@@ -114,12 +132,13 @@ Page({
   stopbuttontap: function() {
     wx.stopRecord()
     clearInterval(this.data.view.TimerID);//停止计时
+
     //保存本次数据
     this.setData({
       recordingbool: false,
-      'record.duration': this.data.view.second + this.data.view.ms / 1000,
+      'record.duration': (this.data.view.second + this.data.view.ms / 1000).toFixed(2),
       'record.time': util.formatTime(new Date(Date.now())),
-      'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms -this.data.text.textdur) * 0.8     
+      'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms -this.data.text.textdur) * 0.8   
     })
     /*wx.getFileInfo({
       filePath: this.data.record.savepath,
@@ -127,11 +146,11 @@ Page({
         console.log(res.size)
       }
     })*/
-    if (this.data.record.score < 0.6 * this.data.text.textdur){
-      //录音时长不符合要求打回去,目前设置的要求是0.5-1.5倍文本建议时长
+    if (this.data.record.duration > 30000){
+      //录音时长不符合要求打回去,目前设置的要求30s内
       wx.showModal({
-        title: 'Warn',
-        content: 'out of range(0.5dur~1.5dur)',
+        title: '警告',
+        content: '录制时长不符合要求，要求为30s以内',
         showCancel: false,
         success: function() {
           var curP = getCurrentPages();
@@ -190,7 +209,6 @@ Page({
     wx.stopVoice();
   },
   savebuttontap: function() {
-
   var history = wx.getStorageSync('history') || [];
   if (this.data.record.duration !== 0) {
       var dellist = [];
@@ -213,7 +231,7 @@ Page({
     }
     else {
       wx.showModal({
-        title: 'Error',
+        title: '错误',
         content: '尚未录音，不能保存',
         showCancel: false
       })
@@ -231,13 +249,41 @@ Page({
   },
   uploadbuttontap: function () {
     //上传录音资料，包括globaldata中的code来获取用户的openid
-    wx.showToast({
-      title: '假的上传成功',
-    })
-    this.setData({
-      'record.uploaded': true
-    })
-    this.savebuttontap();
+    //首先判断是否存在录音
+    var history = wx.getStorageSync('history') || [];
+    if (this.data.record.duration !== 0) {
+      //判断用户网络状况
+      //在这里上传
+      wx.showToast({
+        title: '假的上传成功',
+      });
+      var curP = getCurrentPages();
+      var thisp = curP[curP.length - 1];
+      thisp.setData({
+        'record.uploaded': true
+      });
+      var dellist = [];
+      for (var i = history.length - 1; i >= 0; i--) {
+        //console.log(history.length);
+        if (history[i].text.textID === this.data.text.textID) {
+          history.splice(i, 1);
+        }
+      }
+      //上传后保存到本地
+      history.unshift({
+        text: this.data.text,
+        record: this.data.record
+      });
+      wx.setStorageSync('history', history);
+    }
+    else {
+      wx.showModal({
+        title: '错误',
+        content: '尚未录音，不能上传',
+        showCancel: false
+      })
+    }
+
   },
   /**
    * 生命周期函数--监听页面加载
@@ -265,8 +311,8 @@ Page({
     }
     if (!this.data.hasUserInfo) {
       wx.showModal({
-        title: 'UserInfoErr',
-        content: 'pls login first',
+        title: '用户信息错误',
+        content: '请先登录后再录音',
         showCancel: false,
         success: function(){
           wx.switchTab({
