@@ -9,7 +9,7 @@
             </view>
             <view class="weui-form-preview__bd">
                 <view class="weui-form-preview__item">
-                    <view class="weui-form-preview__label">文本编号</view>
+                    <view class="weui-form-preview__label">任务编号</view>
                     <view class="weui-form-preview__value">{{infoout.text.textID}}</view>
                 </view>
                 <view class="weui-form-preview__item">
@@ -32,20 +32,11 @@
                     <view class="weui-form-preview__label">大小</view>
                     <view class="weui-form-preview__value">{{size}}KB</view>
                 </view>
-                    <view class="weui-form-preview__item">
-                    <view class="weui-form-preview__label">上传状态</view>
-                    <view wx:if="{{infoout.record.uploaded}}" class="weui-form-preview__value">已上传</view>
-                    <view wx:else class="weui-form-preview__value">未上传</view>
-                </view>
             </view>
             <view class="weui-form-preview__ft">
                 <view wx:if="{{isplay}}" bindtap='stoptap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">停止</view>
             <view wx:else bindtap='playtap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">播放</view>
             <view bindtap='rerecordtap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">重新录音</view>
-            </view>
-            <view class="weui-form-preview__ft">
-                <view bindtap='uploadtap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">上传</view>
-
             </view>
         </view>
 </view>

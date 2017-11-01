@@ -1,7 +1,7 @@
 <view class="page">
         <view class="weui-cells weui-cells_after-title">
             <view class="weui-cell">
-                <view class="weui-cell__bd">文本编号</view>
+                <view class="weui-cell__bd">任务编号</view>
                 <view class="weui-cell__ft">{{text.textID}}</view>
             </view>
             <view class="weui-cell">
@@ -19,7 +19,10 @@
             </view>
     <view class="weui-form-preview__ft">
                 <view wx:if="{{recordingbool}}" bindtap='stopbuttontap' class="weui-form-preview__btn weui-form-preview__btn_stop" hover-class="weui-form-preview__btn_active">停止</view>
-                <view wx:else bindtap='recordbuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">录音</view>
+                <block wx:else>
+                <view wx:if='{{!record.duration}}' bindtap='recordbuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">录音</view>
+                <view wx:else class="weui-form-preview__btn weui-form-preview__btn_disable">录音</view>
+                </block>
                 <view bindtap='resetbuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">重置</view>
             </view>
     </view>
@@ -33,16 +36,30 @@
 <view class="weui-cells__title"> </view>
  <view class="weui-form-preview">
     <view class="weui-form-preview__ft">
+    <block wx:if='{{!recordingbool && record.duration}}'>
                 <view bindtap='playvoice' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">播放录音</view>
                 <view bindtap='pausevoice' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">暂停播放</view>
                 <view bindtap='stopvoice' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">停止播放</view>
+    </block>
+        <block wx:else>
+                <view class="weui-form-preview__btn weui-form-preview__btn_disable">播放录音</view>
+                <view class="weui-form-preview__btn weui-form-preview__btn_disable">暂停播放</view>
+                <view class="weui-form-preview__btn weui-form-preview__btn_disable">停止播放</view>
+        </block>
             </view>
     </view>
 <view class="weui-cells__title"> </view>
- <view class="weui-form-preview">
-    <view class="weui-form-preview__ft">
-                <view bindtap='savebuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">保存</view>
-                <view bindtap='uploadbuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">上传</view>
+    <view class="weui-form-preview">
+            <view class="weui-form-preview__ft">
+                <view wx:if='{{!recordingbool}}' bindtap='savebuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">保存</view>
+                <view wx:else class="weui-form-preview__btn weui-form-preview__btn_disable">保存</view>
+                </view>
+    </view>
+    <view class="weui-cells__title"> </view>
+    <view wx:if='{{saved}}' class="weui-form-preview">
+            <view class="weui-form-preview__ft">
+                <view bindtap='nextbuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">下一任务</view>
             </view>
     </view>
 </view>
+

@@ -22,7 +22,7 @@ Page({
   },
   playtap: function() {
     wx.playVoice({
-      filePath: this.data.infoout.record.savepath,
+      filePath: this.data.infoout.record.savepath
     });
     this.setData({
       isplay: true
@@ -41,7 +41,7 @@ Page({
     wx.setStorageSync('textinfo', this.data.infoout.text);
     wx.setStorageSync('rerecordbool', true);
   },
-  uploadtap: function() {
+  /*uploadtap: function() {
     //上传录音文件
     wx.showToast({
       title: '假的上传成功',
@@ -52,5 +52,5 @@ Page({
     var history = wx.getStorageSync('history');
     history[this.data.num] = this.data.infoout;
     wx.setStorageSync('history', history);
-  }
+  }*/
 })

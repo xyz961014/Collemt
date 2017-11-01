@@ -20,5 +20,7 @@ Page{
   color: #aaa;
 }
 
-
+.weui-btn{
+  margin: 20rpx;
+}
 

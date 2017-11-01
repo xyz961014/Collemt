@@ -1,3 +1,7 @@
 .weui-form-preview__btn_stop{
   color: red;
   }
+
+  .weui-form-preview__btn_disable{
+  color: gainsboro;
+  }

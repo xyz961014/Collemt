@@ -32,11 +32,11 @@ Page({
    * 页面的初始数据
    */
   data: {
+    datatext: [],
     text:{
       text: "",//文本
       textID: 0,//文本ID
       textdur: 0,//文本建议时长
-      uploadurl: "" //上传路径
     },
     record: {
       time: "", // 录制时间
@@ -53,7 +53,8 @@ Page({
       durstring: "0.000" //计时字符串
     },
     hasUserInfo: false, //是否获取用户信息
-    recordingbool: false //是否正在录音
+    recordingbool: false, //是否正在录音
+    saved: false  //是否已经保存
   },
   recordbuttontap: function(){
     wx.getSetting({
@@ -215,6 +216,7 @@ Page({
       for (var i = history.length - 1; i >= 0; i--) {
         //console.log(history.length);
         if (history[i].text.textID === this.data.text.textID) {
+          //删除文件
           history.splice(i, 1);
         }
       }
@@ -228,6 +230,10 @@ Page({
       wx.showToast({
         title: '保存成功',
       });
+      wx.setStorageSync('saved', true);
+      this.setData({
+        saved: true
+      })
     }
     else {
       wx.showModal({
@@ -247,7 +253,7 @@ Page({
     app.globalData.history.unshift(saveinfo);
     console.log(app.globalData.history);*/
   },
-  uploadbuttontap: function () {
+  /*uploadbuttontap: function () {
     //上传录音资料，包括globaldata中的code来获取用户的openid
     //首先判断是否存在录音
     var history = wx.getStorageSync('history') || [];
@@ -284,12 +290,17 @@ Page({
       })
     }
 
-  },
+  },*/
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-
+    wx.setStorageSync('saved', true);
+    var textdata = wx.getStorageSync('data');
+    this.setData({
+      'datatext': textdata.packages
+    });
+    
   },
 
   /**
@@ -309,6 +320,10 @@ Page({
         hasUserInfo: true
       })
     }
+    var textdata = wx.getStorageSync('data');
+    this.setData({
+      'datatext': textdata.packages
+    });
     if (!this.data.hasUserInfo) {
       wx.showModal({
         title: '用户信息错误',
@@ -321,43 +336,77 @@ Page({
         }
       })
     } else {
-      //初始化
-      wx.removeSavedFile({
-        filePath: this.data.record.savepath,
-      })
-      this.setData({
-        'record.time': "",
-        'record.savepath': "",
-        'record.duration': 0,
-        'record.score': 0,
-        'record.uploaded': false,
-        'view.TimerID': 0,
-        'view.second': 0,
-        'view.ms': 0,
-        'view.durstring': "0.000"
-      })
-      //判断是否是重录
-      var rerecordbool = wx.getStorageSync('rerecordbool');
-      var textinfo = wx.getStorageSync('textinfo');
-      wx.setStorageSync('rerecordbool', false);
-      if (rerecordbool) {
-        this.setData({
-          text: textinfo
+      //判断上次录音是否保存
+      if (wx.getStorageSync('saved')) {
+        //初始化
+        wx.removeSavedFile({
+          filePath: this.data.record.savepath,
         })
-      } 
-      else {
-      //加载语料信息
-      var text = util.randomWord(true,20,100);
         this.setData({
-          'text.text': text[0],
-          'text.textID': text[1],
-          'text.textdur': text[0].length * 100,
-          'text.uploadurl': "null"
-        });
+          'record.time': "",
+          'record.savepath': "",
+          'record.duration': 0,
+          'record.score': 0,
+          'record.uploaded': false,
+          'view.TimerID': 0,
+          'view.second': 0,
+          'view.ms': 0,
+          'view.durstring': "0.000"
+        })
+        //判断是否是重录
+        var rerecordbool = wx.getStorageSync('rerecordbool');
+        var textinfo = wx.getStorageSync('textinfo');
+        wx.setStorageSync('rerecordbool', false);
+        if (rerecordbool) {
+         this.setData({
+            text: textinfo
+          })
+        } 
+        else {
+        //加载语料信息
+          if (!wx.getStorageSync('pkgon')) {
+            wx.showModal({
+              title: '没有正在执行的任务包',
+              content: '请先获取任务包',
+              showCancel: false,
+              success: function() {
+                wx.switchTab({
+                  url: '/pages/index/index'
+                })
+              }
+            });
+            return;
+          }
+          var i = wx.getStorageSync('history').length
+          if (i < 5) {
+            this.setData({
+              'text':this.data.datatext[i]
+            })
+            wx.setStorageSync('saved', false);
+            this.setData({
+              saved: false
+            })
+          }
+          else {
+            wx.showModal({
+              title: '没有新任务',
+              content: '请上传任务包后获取新任务包',
+              showCancel: false,
+              success: function () {
+                wx.switchTab({
+                  url: '/pages/index/index'
+                })
+              }
+            })
+          }
+        }
       }
     }
   },
-
+  
+  nextbuttontap: function() {
+    this.onShow();
+  },
   /**
    * 生命周期函数--监听页面隐藏
    */
