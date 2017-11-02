@@ -21,6 +21,7 @@ Page({
     wx.setStorageSync('rerecordbool', false);
   },
   playtap: function() {
+    console.log(this.data.infoout.record.savepath)
     wx.playVoice({
       filePath: this.data.infoout.record.savepath
     });

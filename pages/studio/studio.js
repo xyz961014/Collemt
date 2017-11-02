@@ -336,40 +336,46 @@ Page({
         }
       })
     } else {
-      //判断上次录音是否保存
-      if (wx.getStorageSync('saved')) {
-        //初始化
-        wx.removeSavedFile({
-          filePath: this.data.record.savepath,
-        })
-        this.setData({
-          'record.time': "",
-          'record.savepath': "",
-          'record.duration': 0,
-          'record.score': 0,
-          'record.uploaded': false,
-          'view.TimerID': 0,
-          'view.second': 0,
-          'view.ms': 0,
-          'view.durstring': "0.000"
-        })
-        //判断是否是重录
-        var rerecordbool = wx.getStorageSync('rerecordbool');
+      //判断是否是重录
+      if (wx.getStorageSync('rerecordbool')) {
+        //加载重录信息
         var textinfo = wx.getStorageSync('textinfo');
-        wx.setStorageSync('rerecordbool', false);
-        if (rerecordbool) {
-         this.setData({
-            text: textinfo
+          this.setData({
+            text: textinfo,
+            saved: false
           })
-        } 
-        else {
-        //加载语料信息
+          this.setData({
+            'record.time': "",
+            'record.savepath': "",
+            'record.duration': 0,
+            'record.score': 0,
+            'record.uploaded': false,
+            'view.TimerID': 0,
+            'view.second': 0,
+            'view.ms': 0,
+            'view.durstring': "0.000"
+          });
+          wx.setStorageSync('rerecordbool', false)
+      }
+      else {
+        if (wx.getStorageSync('saved')) {
+          this.setData({
+            'record.time': "",
+            'record.savepath': "",
+            'record.duration': 0,
+            'record.score': 0,
+            'record.uploaded': false,
+            'view.TimerID': 0,
+            'view.second': 0,
+            'view.ms': 0,
+            'view.durstring': "0.000"
+          });
           if (!wx.getStorageSync('pkgon')) {
             wx.showModal({
               title: '没有正在执行的任务包',
               content: '请先获取任务包',
               showCancel: false,
-              success: function() {
+              success: function () {
                 wx.switchTab({
                   url: '/pages/index/index'
                 })
@@ -380,7 +386,7 @@ Page({
           var i = wx.getStorageSync('history').length
           if (i < 5) {
             this.setData({
-              'text':this.data.datatext[i]
+              'text': this.data.datatext[i]
             })
             wx.setStorageSync('saved', false);
             this.setData({

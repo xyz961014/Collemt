@@ -2,12 +2,14 @@
   "pages":[
     "pages/index/index",
     "pages/logs/logs",
-    "pages/studio/studio"
+    "pages/studio/studio",
+    "pages/index/pages/register/register",
+    "pages/index/pages/usrinfo/usrinfo"
   ],
   "window":{
     "backgroundTextStyle":"light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "NLPhelper",
+    "navigationBarTitleText": "Collemt",
     "navigationBarTextStyle":"black"
   },
   "tabBar": {

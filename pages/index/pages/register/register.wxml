@@ -1,0 +1,49 @@
+<!--register.wxml-->
+<view class="page__bd">
+  <view class="userinfo">
+    <block>
+      <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>
+      <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+    </block>
+  </view>
+ <form bindsubmit="formSubmit" bindreset="formReset">
+  <view class="login_info" style="top:{{windowHeight * 0.35}}px;width: {{windowWidth * 0.92}}px;">  
+  <view class="weui-cells weui-cells_after-title login_form">  
+
+  <view class="weui-cell weui-cell_input">  
+    <view class="weui-cell__hd">  
+     <view class="weui-label">性别</view>
+    </view>  
+    <view class="weui-cell__bd">
+      <radio-group name="gender">
+        <label><radio value="男性"/>男性</label>
+        <label><radio value="女性"/>女性</label>
+      </radio-group>
+    </view>
+   </view>
+
+  <view class="weui-cell weui-cell_input">  
+    <view class="weui-cell__hd">  
+       <view class="weui-label">籍贯</view>  
+    </view>  
+    <view class="weui-cell__bd">  
+        <input class="weui-input" placeholder="请输入出生地" type="text" maxlength="20" value="{{account}}" focus="true" name="birthplace"/>  
+    </view>  
+  </view>
+
+  <view class="weui-cell weui-cell_input">  
+          <view class="weui-cell__hd">  
+            <view class="weui-label">手机号码</view>  
+          </view>  
+          <view class="weui-cell__bd">  
+            <input class="weui-input" placeholder="务必填写用于支付" maxlength="11"  name="mobile"/>  
+          </view>  
+        </view> 
+
+  </view>
+  </view>  
+        <view class="weui-btn-area">  
+      <button class="weui-btnr" type="primary" formType="submit">注册</button>  
+  </view>
+</form>
+</view>

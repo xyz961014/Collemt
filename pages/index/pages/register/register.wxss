@@ -1,9 +1,6 @@
-/**index.wxss**/
-Page{
-  background-color: #EEEEEE;
-}
+/* pages/index/pages/register/register.wxss */
 
-.userinfo {
+  .userinfo {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,6 +17,6 @@ Page{
   color: #aaa;
 }
 
-.weui-btn{
-  margin: 20rpx;
+.weui-btnr{
+  margin-top: 300rpx;
 }
