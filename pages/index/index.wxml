@@ -1,27 +1,71 @@
 <!--index.wxml-->
-<view class="page">
+<view class="page__hd">
   <view class="userinfo">
-    <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 登录 </button>
+    <block wx:if="{{!hasUserInfo && canIUse}}">
+        <image  class="userinfo-avatar" src="{{logourl}}" background-size="cover"></image>
+        <text>聆听你的声音</text>
+        <button class='weui-btn' type='primary' open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 注册 </button>
+    </block>
     <block wx:else>
       <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover" bindtap='usrinfo'></image>
       <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      <text class='user-score'>得分：{{score}}</text>
+      <!--<text class='user-score'>得分：{{score}}</text>-->
     </block>
   </view>
- <view class="weui-cells__title"> 存储空间 </view>
+    <view wx:if="{{hasUserInfo}}" class="page__bd">
+          <view class="weui-cells__title"> 用户信息</view>
+          <view class="weui-cells weui-cells_after-title">
+            <view class="weui-cell">
+                <view class="weui-cell__bd">性别</view>
+                <view class="weui-cell__ft">{{gender}}</view>
+            </view>
+
+            <view class="weui-cell">
+                <view class="weui-cell__bd">籍贯</view>
+                <view class="weui-cell__ft">{{birthplace}}</view>
+            </view>
+
+            <view class="weui-cell">
+                <view class="weui-cell__bd">电话号码</view>
+                <view class="weui-cell__ft">{{mobile}}</view>
+            </view>
+
+            <view class="weui-cell">
+                <view class="weui-cell__bd">已完成</view>
+                <view class="weui-cell__ft">{{completed}}</view>
+            </view>
+
+            <view class="weui-cell">
+                <view class="weui-cell__bd">待结算</view>
+                <view class="weui-cell__ft">{{unpaid}}</view>
+            </view>
+
+            <view class="weui-cell">
+                <view class="weui-cell__bd">当前任务编号</view>
+                <view wx:if='{{cur_pkg == -1}}' class="weui-cell__ft">无任务</view>
+                <view wx:else class="weui-cell__ft">{{cur_pkg}}</view>
+            </view>
+          </view>
+  <block>
+      <button wx:if="{{mobile==='0'}}" class="weui-btn" type="primary" bindtap='onLogin'>注册</button>
+      <button wx:else class="weui-btn" type="primary" bindtap='onModify'>修改</button>
+  </block>
+</view>
+
+</view>
+  <!---
+ <view class="weui-cells__title"> 存储空间 （{{percentage /10}}MB/10MB）</view>
         <view class="weui-progress">
             <view class="weui-progress__bar">
                 <progress percent="{{percentage}}" stroke-width="3" />
             </view>
         </view>
-         <view class="weui-cells__title">{{percentage}}%已用</view>
- <view class="weui-cells__title"> 任务完成进度 </view>
+ <view class="weui-cells__title"> 任务完成进度（{{numfinished}} / {{numall}}）</view>
         <view class="weui-progress">
             <view class="weui-progress__bar">
                 <progress percent='{{numfinished / numall * 100}}' stroke-width="3" />
             </view>
         </view>
-         <view class="weui-cells__title">{{numfinished}}/{{numall}}</view>
   <view class="weui-panel weui-panel_access">
             <view class="weui-panel__hd">已完成任务（任务包编号：{{numpackage}}）</view>
             <view class="weui-panel__bd">
@@ -41,4 +85,4 @@
 
 
 </view>
-
+--->

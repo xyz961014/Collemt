@@ -33,9 +33,14 @@
             </view>
 
             <view class="weui-cell">
-                <view class="weui-cell__bd">当前任务</view>
-                <view class="weui-cell__ft">{{cur_pkg}}</view>
+                <view class="weui-cell__bd">当前任务编号</view>
+                <view wx:if='{{cur_pkg == -1}}' class="weui-cell__ft">无任务</view>
+                <view wx:else class="weui-cell__ft">{{cur_pkg}}</view>
             </view>
           </view>
 </view>
+<block>
+<button wx:if="{{mobile==='0'}}" class="weui-btn" type="primary" bindtap='onLogin'>注册</button>
+<button wx:else class="weui-btn" type="primary" bindtap='onModify'>修改</button>
+</block>
 </view>

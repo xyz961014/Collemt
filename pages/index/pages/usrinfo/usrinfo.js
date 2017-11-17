@@ -97,7 +97,18 @@ onPullDownRefresh: function () {
     }
   })
     wx.stopPullDownRefresh()
-  }
+  },
+onLogin: function () {
+  wx.navigateTo({
+    url: '/pages/index/pages/register/register?modified=0',
+  })
+},
+
+onModify: function () {
+  wx.navigateTo({
+    url: '/pages/index/pages/register/register?modified=1',
+  })
+},
 
   
 })

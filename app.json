@@ -13,14 +13,20 @@
     "navigationBarTextStyle":"black"
   },
   "tabBar": {
-    "list": [{
+    "list": [
+      {
+        "pagePath": "pages/studio/studio",
+        "iconPath": "images/logo3.png",
+        "selectedIconPath": "images/logo4.png",
+        "text": "录音棚"
+      },
+      {
       "pagePath": "pages/index/index",
+      "iconPath": "images/logo1.png",
+      "selectedIconPath": "images/logo2.png",
       "text": "休息区"
-    },
-    {
-      "pagePath": "pages/studio/studio",
-      "text": "录音棚"
-    }],
+      }
+],
     "color": "#000000",
     "selectedColor": "#09BB07",
     "backgroundColor": "#F7F7FA"

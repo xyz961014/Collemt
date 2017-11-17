@@ -1,4 +1,4 @@
-const app = getApp();
+const app = getApp(); 
 const util = require('../../utils/util.js')
 //计时函数
 var Timerstart = function(){
@@ -54,7 +54,8 @@ Page({
     },
     hasUserInfo: false, //是否获取用户信息
     recordingbool: false, //是否正在录音
-    saved: false  //是否已经保存
+    saved: false, //是否已经保存
+    numall: 0
   },
   recordbuttontap: function(){
     wx.getSetting({
@@ -68,7 +69,11 @@ Page({
               var thisp = curP[curP.length - 1];
               wx.startRecord({
                 success: function(res) {
-                  
+                  /*wx.showToast({
+                    title: 'L0ading',
+                    icon: "loading",
+                    duration: 500
+                  })*/
                   wx.saveFile({
                     tempFilePath: res.tempFilePath,
                     success: function (res) {
@@ -320,10 +325,12 @@ Page({
         hasUserInfo: true
       })
     }
-    var textdata = wx.getStorageSync('data');
+    var textdata = wx.getStorageSync('data') || [];
     this.setData({
-      'datatext': textdata.packages
+      'datatext': textdata.packages,
+      'numall': (textdata.packages || []).length
     });
+    console.log(this.data.hasUserInfo);
     if (!this.data.hasUserInfo) {
       wx.showModal({
         title: '用户信息错误',

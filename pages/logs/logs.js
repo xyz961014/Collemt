@@ -22,8 +22,14 @@ Page({
   },
   playtap: function() {
     console.log(this.data.infoout.record.savepath)
+    var that = this;
     wx.playVoice({
-      filePath: this.data.infoout.record.savepath
+      filePath: this.data.infoout.record.savepath,
+      complete: function() {
+        that.setData({
+          isplay: false
+        });
+      }
     });
     this.setData({
       isplay: true

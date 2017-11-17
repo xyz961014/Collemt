@@ -23,28 +23,24 @@ Page({
     numpackage: '未获取',
     percentage: 0,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
-    canNewpackage: true
+    canNewpackage: true,
+    logourl: '../../images/logo.png',
+    gender: '',
+    birthplace: '',
+    mobile: '',
+    cur_pkg: 0,
+    completed: 0,
+    unpaid: 0
 
   },
   //事件处理函数
   onLoad: function () {
-    if (wx.getStorageSync('MyOpenid').openid) {
-      this.setData({
-        myopenid: wx.getStorageSync('MyOpenid').openid
-      })
-    } else {
-      app.openidCallback = res => {
-        this.setData({
-          myopenid: res.openid
-        })
-      }
-    }
     if (app.globalData.userInfo) {
       this.setData({
         userInfo: app.globalData.userInfo,
         hasUserInfo: true
       })
-    } else if (this.data.canIUse){
+    } else if (this.data.canIUse) {
       // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
       // 所以此处加入 callback 以防止这种情况
       app.userInfoReadyCallback = res => {
@@ -65,16 +61,87 @@ Page({
         }
       })
     }
+
+    if (wx.getStorageSync('MyOpenid').openid) {
+      this.setData({
+        myopenid: wx.getStorageSync('MyOpenid').openid
+      })
+    } else {
+      app.openidCallback = res => {
+        this.setData({
+          myopenid: res.openid
+        })
+      }
+    }
+    
     //匹配的用户信息向本地缓存中传入历史记录
 
   },
-  historytap: function(e) {
+  /*historytap: function(e) {
     var num = wx.setStorageSync('num', e.currentTarget.dataset.num);
     wx.navigateTo({
       url: '/pages/logs/logs'
     })
-  },
+  },*/
   onShow: function() {
+    wx.getStorage({
+      key: 'MyOpenid',
+      success: function (res) {
+        wx.request({
+          url: 'https://60755112.collemt.club/onGetinfo',
+          method: 'GET',
+          data: {
+            openid: res.data.openid
+          },
+          header: {
+            'content-type': 'application/json'
+          },
+          success: function (res2) {
+            wx.setStorageSync('MyOpenid', res2.data);
+            console.log(res2.data)
+          },
+        })
+      },
+    });
+    var that = this;
+    wx.getStorage({
+      key: 'MyOpenid',
+      success: function (res) {
+        wx.request({
+          url: 'https://60755112.collemt.club/onGetinfo',
+          method: 'GET',
+          data: {
+            openid: res.data.openid
+          },
+          header: {
+            'content-type': 'application/json'
+          },
+          success: function (res2) {
+            that.setData({
+
+              gender: res2.data.gender,
+              birthplace: res2.data.address,
+              mobile: res2.data.phonenumber,
+              cur_pkg: res2.data.cur_pkg,
+              completed: res2.data.completed,
+              unpaid: res2.data.unpaid
+            })
+            console.log(res2.data)
+          },
+          fail: function () {
+            wx.showModal({
+              title: '提醒',
+              content: '请连接网络',
+              success: function (res) {
+                if (res.confirm) {
+                  console.log('用户点击确定')
+                }
+              }
+            })
+          }
+        })
+      },
+    });
     //从缓存同步历史数据
     if (!wx.getStorageSync('pkgon')) {
       this.setData({
@@ -86,7 +153,7 @@ Page({
         canNewpackage: false
       })
     }
-    this.setData({
+    /*this.setData({
       history: wx.getStorageSync('history'),
       numpackage:wx.getStorageSync('data').packageID,
       numfinished: wx.getStorageSync('history').length,
@@ -109,13 +176,13 @@ Page({
     for (var i of wx.getStorageSync('history')) {
       scor += i.record.score;
       
-      /*if(i.record.savepath){
-        usage += i.record.size;
-      }*/
+      //if(i.record.savepath){
+      //  usage += i.record.size;
+      //}
     }
     this.setData({
       score: scor
-    })
+    })*/
   },
   getUserInfo: function(e) {
     app.globalData.userInfo = e.detail.userInfo;
@@ -139,7 +206,7 @@ Page({
       hasUserInfo: true
     })
   },
-  uploadpackage: function() {
+  /*uploadpackage: function() {
     if (this.data.history.length !== 5) {
       wx.showModal({
         title: '错误',
@@ -169,19 +236,25 @@ Page({
               success: function (res2) {
                 console.log(res2.data);
                 console.log(i)
-                /*wx.removeSavedFile({
-                  filePath: history[i].record.savepath,
-                })*/
-                wx.setStorageSync('history', []);
-                wx.setStorageSync('pkgon', false);
-                wx.setStorageSync('data', {})
-                that.setData({
-                  canNewpackage: true,
-                  history: [],
-                  numfinished: 0,
-                  numpackage: "未获取",
-                  numall: 0
-                })
+                var data = JSON.parse(res2.data);
+                //wx.removeSavedFile({
+                //  filePath: history[i].record.savepath,
+                //})
+
+                if (data.stat == 2) {
+                  console.log(res2.data);
+                  wx.setStorageSync('history', []);
+                  wx.setStorageSync('pkgon', false);
+                  wx.setStorageSync('data', {})
+                  that.setData({
+                    canNewpackage: true,
+                    history: [],
+                    numfinished: 0,
+                    numpackage: "未获取",
+                    numall: 0
+                  })
+                }
+
               }
             });
           }
@@ -190,87 +263,140 @@ Page({
     }
     //上传任务包
 
-  },
-  newpackage: function() {
-    //清除缓存
-    wx.getSavedFileList({
+  },*/
+  /*newpackage: function() {
+    wx.getStorage({
+      key: 'MyOpenid',
       success: function (res) {
-        console.log(res.fileList);
-        var l = res.fileList.length;
-        for (var i = 0;i < l;i++) {
-          wx.removeSavedFile({
-            filePath: res.fileList[i].filePath,
-            complete: function (res) {
-              console.log(res)
+        console.log(res.data.phonenumber)
+        if (res.data.phonenumber === "0") //注意返回什么
+        {
+          wx.navigateTo({
+            url: '/pages/index/pages/register/register?modified=0',
+          })
+        }
+        else {
+          //清除缓存
+          wx.getSavedFileList({
+            success: function (res) {
+              console.log(res.fileList);
+              var l = res.fileList.length;
+              for (var i = 0; i < l; i++) {
+                wx.removeSavedFile({
+                  filePath: res.fileList[i].filePath,
+                  complete: function (res) {
+                    console.log(res)
+                  }
+                })
+              }
             }
+          })
+          //获取新任务包
+          var datastr = {};
+          var that = this;
+          wx.getStorage({
+            key: 'MyOpenid',
+            success: function (res) {
+              wx.request({
+                url: 'https://' + app.config.host + '/onFetch',
+                method: 'GET',
+                data: {
+                  openid: res.data.openid
+                },
+                success: function (res) {
+                  console.log(res.data);
+                  datastr = res.data;
+                  if (datastr.stat == -1) {
+                    wx.showModal({
+                      title: '错误',
+                      content: datastr.msg,
+                      showCancel: false
+                    })
+                  }
+                  else {
+                    //datastr = {
+                    //'pkgid': 91,
+                    //'text': '录一段话吧录一段话吧录一段话吧录一段话吧录一段话吧\n录两段话吧录两段话吧录两段话吧录两段话吧录两段话吧\n录三段话吧录三段话吧录三段话吧录三段话吧录三段话吧\n录四段话吧录四段话吧录四段话吧录四段话吧录四段话吧\n录五段话吧录五段话吧录五段话吧录五段话吧录五段话吧'
+                  };
+                    var textlist = datastr.text.split('\n');
+                    var textdata = {
+                      packageID: datastr.pkgid,
+                      packages: []
+                    }
+                    var packages = [];
+                    for (var n = 0; n < textlist.length; n++) {
+                      var item = {
+                        textID: n + 1,
+                        text: textlist[n],
+                        textdur: textlist[n].length * 300
+                      };
+                      if (item.textdur) {
+                        packages.push(item);
+                      }
+
+                    }
+                    textdata.packages = packages;
+                    wx.setStorageSync('data', textdata);
+                    wx.setStorageSync('pkgon', true);
+                    var curP = getCurrentPages();
+                    var thisp = curP[curP.length - 1];//获取当前页面
+                    thisp.setData({
+                      canNewpackage: false,
+                      numpackage: textdata.packageID,
+                      numall: textdata.packages.length
+                    });
+                  }
+                }
+              });
+            },
           })
         }
       }
     })
-    //获取新任务包
-    var datastr = {};
-    var that = this;
-    wx.getStorage({
-      key: 'MyOpenid',
-      success: function(res) {
-        wx.request({
-          url: 'https://' + app.config.host + '/onFetch',
-          method: 'GET',
-          data: {
-            openid: res.data.openid
-          },
-          success: function (res) {
-            console.log(res.data);
-            datastr = res.data;
-            if (datastr.stat == -1) {
-              wx.showModal({
-                title: '错误',
-                content: datastr.msg,
-                showCancel: false
-              })
-            }
-            else {
-              /*datastr = {
-              'pkgid': 91,
-              'text': '录一段话吧录一段话吧录一段话吧录一段话吧录一段话吧\n录两段话吧录两段话吧录两段话吧录两段话吧录两段话吧\n录三段话吧录三段话吧录三段话吧录三段话吧录三段话吧\n录四段话吧录四段话吧录四段话吧录四段话吧录四段话吧\n录五段话吧录五段话吧录五段话吧录五段话吧录五段话吧'
-            };*/
-              var textlist = datastr.text.split('\n');
-              var textdata = {
-                packageID: datastr.pkgid,
-                packages: []
-              }
-              var packages = [];
-              for (var n = 0; n < textlist.length; n++) {
-                var item = {
-                  textID: n + 1,
-                  text: textlist[n],
-                  textdur: textlist[n].length * 300
-                };
-                if (item.textdur) {
-                  packages.push(item);
-                }
-
-              }
-              textdata.packages = packages;
-              wx.setStorageSync('data', textdata);
-              wx.setStorageSync('pkgon', true)
-              that.setData({
-                canNewpackage: false,
-                numpackage: textdata.packageID,
-                numall: textdata.packages.length
-              });
-            }
-          }
-        });
-      },
-    })
+    
     
 
 
-  },
-  usrinfo: function () {
+  },*/
+  /*usrinfo: function () {
     wx.navigateTo({
       url: 'pages/usrinfo/usrinfo',
     })
-  }
+  },*/
+  /*onPullDownRefresh: function () {
+
+    var that = this;
+    wx.request({
+      url: 'https://60755112.collemt.club/onGetinfo',
+      data: {
+        openid: wx.getStorageSync('MyOpenid').openid
+      },
+      header: {
+        'content-type': 'application/json'
+      },
+      success: function (res2) {
+        that.setData({
+          gender: res2.data.gender,
+          birthplace: res2.data.address,
+          mobile: res2.data.phonenumber,
+          cur_pkg: res2.data.cur_pkg,
+          completed: res2.data.completed,
+          unpaid: res2.data.unpaid
+        })
+        console.log(res2.data)
+      }
+    })
+    wx.stopPullDownRefresh()
+  },*/
+  onLogin: function () {
+    wx.navigateTo({
+      url: '/pages/index/pages/register/register?modified=0',
+    })
+  },
+
+  onModify: function () {
+    wx.navigateTo({
+      url: '/pages/index/pages/register/register?modified=1',
+    })
+  },
 })
