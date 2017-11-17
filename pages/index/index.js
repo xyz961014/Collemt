@@ -65,12 +65,14 @@ Page({
     if (wx.getStorageSync('MyOpenid').openid) {
       this.setData({
         myopenid: wx.getStorageSync('MyOpenid').openid
-      })
+      });
+      
     } else {
       app.openidCallback = res => {
         this.setData({
           myopenid: res.openid
-        })
+        });
+       
       }
     }
     
@@ -84,29 +86,13 @@ Page({
     })
   },*/
   onShow: function() {
-    wx.getStorage({
-      key: 'MyOpenid',
-      success: function (res) {
-        wx.request({
-          url: 'https://60755112.collemt.club/onGetinfo',
-          method: 'GET',
-          data: {
-            openid: res.data.openid
-          },
-          header: {
-            'content-type': 'application/json'
-          },
-          success: function (res2) {
-            wx.setStorageSync('MyOpenid', res2.data);
-            console.log(res2.data)
-          },
-        })
-      },
-    });
     var that = this;
     wx.getStorage({
       key: 'MyOpenid',
       success: function (res) {
+        wx.showLoading({
+          title: '获取用户信息',
+        })
         wx.request({
           url: 'https://60755112.collemt.club/onGetinfo',
           method: 'GET',
@@ -117,8 +103,10 @@ Page({
             'content-type': 'application/json'
           },
           success: function (res2) {
+            wx.hideLoading();
+            wx.setStorageSync('MyOpenid', res2.data);
+            console.log(res2.data);
             that.setData({
-
               gender: res2.data.gender,
               birthplace: res2.data.address,
               mobile: res2.data.phonenumber,
@@ -126,7 +114,10 @@ Page({
               completed: res2.data.completed,
               unpaid: res2.data.unpaid
             })
-            console.log(res2.data)
+            console.log(res2.data);
+            if (res2.data.cur_pkg !== (wx.getStorageSync('data').packageID || -1)) {
+              that.newpackage();
+            }
           },
           fail: function () {
             wx.showModal({
@@ -143,7 +134,7 @@ Page({
       },
     });
     //从缓存同步历史数据
-    if (!wx.getStorageSync('pkgon')) {
+    /*if (!wx.getStorageSync('pkgon')) {
       this.setData({
         canNewpackage: true
       })
@@ -152,7 +143,7 @@ Page({
       this.setData({
         canNewpackage: false
       })
-    }
+    }*/
     /*this.setData({
       history: wx.getStorageSync('history'),
       numpackage:wx.getStorageSync('data').packageID,
@@ -186,6 +177,7 @@ Page({
   },
   getUserInfo: function(e) {
     app.globalData.userInfo = e.detail.userInfo;
+    var that = this;
     //假装在这里注册
     //判断是否注册
     wx.getStorage({
@@ -198,6 +190,9 @@ Page({
             url: 'pages/register/register',
           })
         }
+        else {
+          that.onShow();
+        }
       }
     })
 
@@ -206,8 +201,8 @@ Page({
       hasUserInfo: true
     })
   },
-  /*uploadpackage: function() {
-    if (this.data.history.length !== 5) {
+  uploadpackage: function() {
+    if (wx.getStorageSync('history').length !== wx.getStorageSync('data').packages.length) {
       wx.showModal({
         title: '错误',
         content: '有尚未完成的任务',
@@ -251,8 +246,9 @@ Page({
                     history: [],
                     numfinished: 0,
                     numpackage: "未获取",
-                    numall: 0
-                  })
+                    numall: 0,
+                  });
+                  that.onShow();
                 }
 
               }
@@ -260,20 +256,29 @@ Page({
           }
         }
       });
+      
     }
     //上传任务包
 
-  },*/
-  /*newpackage: function() {
+  },
+  newpackage: function() {
     wx.getStorage({
       key: 'MyOpenid',
       success: function (res) {
         console.log(res.data.phonenumber)
         if (res.data.phonenumber === "0") //注意返回什么
         {
-          wx.navigateTo({
-            url: '/pages/index/pages/register/register?modified=0',
+          wx.showToast({
+            title: '尚未注册',
+            icon: "loading",
+            duration: 1000,
+            complete: function() {
+              wx.navigateTo({
+                url: '/pages/index/pages/register/register?modified=0',
+              })
+            }
           })
+          
         }
         else {
           //清除缓存
@@ -317,7 +322,7 @@ Page({
                     //datastr = {
                     //'pkgid': 91,
                     //'text': '录一段话吧录一段话吧录一段话吧录一段话吧录一段话吧\n录两段话吧录两段话吧录两段话吧录两段话吧录两段话吧\n录三段话吧录三段话吧录三段话吧录三段话吧录三段话吧\n录四段话吧录四段话吧录四段话吧录四段话吧录四段话吧\n录五段话吧录五段话吧录五段话吧录五段话吧录五段话吧'
-                  };
+                  
                     var textlist = datastr.text.split('\n');
                     var textdata = {
                       packageID: datastr.pkgid,
@@ -345,11 +350,20 @@ Page({
                       numpackage: textdata.packageID,
                       numall: textdata.packages.length
                     });
+                    thisp.onShow();
+                    wx.switchTab({
+                      url: '/pages/studio/studio',
+                    });
                   }
-                }
+                },
+                /*complete: function() {
+                  wx.switchTab({
+                    url: '/pages/studio/studio',
+                  })
+                }*/
               });
             },
-          })
+          });
         }
       }
     })
@@ -357,7 +371,7 @@ Page({
     
 
 
-  },*/
+  },
   /*usrinfo: function () {
     wx.navigateTo({
       url: 'pages/usrinfo/usrinfo',
@@ -399,4 +413,19 @@ Page({
       url: '/pages/index/pages/register/register?modified=1',
     })
   },
+  onShareAppMessage: function (res) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target)
+    }
+    return {
+      imageUrl: this.data.logourl,
+      success: function (res) {
+        // 转发成功
+      },
+      fail: function (res) {
+        // 转发失败
+      }
+    }
+  }
 })

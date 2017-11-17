@@ -42,8 +42,32 @@ const formatNumber = n => {
   return n[1] ? n : '0' + n
 }
 
+var characterStats = function (str) {
+  var i = 0;
+  var num = 0;
+  var chn = /^[\u4e00-\u9fa5]/
+  while (i < str.length) {
+    var c = str.charAt(i);
+    if (chn.test(c)) {
+      num++;
+    }
+    else if (/^[a-zA-Z0-9]/.test(c)) {
+      do
+      {
+        i++;
+        c = str.charAt(i);
+      } while (/^[a-zA-Z0-9]/.test(c));
+      num++;
+      continue;
+    }
+    i++;
+  }
+  return num;
+}
+
 module.exports = {
   formatTime: formatTime,
   timestring: timestring,
-  randomWord: randomWord
+  randomWord: randomWord,
+  characterStats: characterStats
 }

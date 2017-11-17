@@ -1,5 +1,6 @@
 <!--register.wxml-->
 <view class="page__bd">
+<view class="weui-toptips weui-toptips_warn" wx:if="{{showTopTips}}">{{phonenumerrstr}}</view>
   <view class="userinfo">
     <block>
       <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>
@@ -27,7 +28,7 @@
                     <view class="weui-label">籍贯</view>
                 </view>
                 <view class="weui-cell__bd">
-                 <picker mode="region" data-name="region" value="{{['北京市', '北京市', '海淀区']}}" bindchange="onPickerChange">
+                 <picker mode="region" data-name="region" value="{{regions}}" bindchange="onPickerChange">
                         <view class="weui-select weui-select_in-select-after">{{region}}</view>
                     </picker>
               </view>
@@ -37,7 +38,7 @@
                     <view class="weui-label">手机号</view>
                 </view>
                 <view class="weui-cell__bd">
-                    <input class="weui-input" placeholder="务必输入手机号以领取报酬" maxlength="11" name='mobile' />
+                    <input class="weui-input" placeholder="{{phoneplaceholder}}" maxlength="11" name='mobile' />
                 </view>
             </view>
         </view>

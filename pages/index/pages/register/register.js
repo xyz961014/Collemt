@@ -12,17 +12,32 @@ Page({
 
   data: {
     region:'',
+    regions:[],
     modified:0,
     userInfo: {},
     openID:'',
     registerInfo:[],
     genders: ["男性", "女性"],
     genderIndex: 0,
-    statestr: '注册'
+    statestr: '注册',
+    phonenumerrstr: "请填写正确的手机号",
+    phoneplaceholder: "务必输入手机号以领取报酬",
+    showTopTips: false
   },
 
   onLoad: function (res) {
     var userInfo = app.globalData.userInfo;
+    var info = wx.getStorageSync('MyOpenid');
+    var numgender;
+    if (info) {
+      if (info.gender == "男性") {
+        numgender = 0;
+      }
+      else if (info.gender == "女性") {
+        numgender = 1;
+      }
+
+    }
     this.setData({
       userInfo: userInfo,
       region: '北京市 北京市 海淀区'
@@ -31,7 +46,11 @@ Page({
     if (res.modified == 1) {
       this.setData({
         modified: res.modified,
-        statestr: '修改'
+        statestr: '修改',
+        genderIndex: numgender,
+        region: info.address,
+        phoneplaceholder: info.phonenumber,
+        regions: info.address.split(' ')
       })
     }
     console.log(this.data.modified);
@@ -149,16 +168,15 @@ Page({
     }
     else
     {
-      wx.showModal({
-        title: '提醒',
-        content: '请填写正确的手机号码',
-        showCancel:false,
-        success: function (res) {
-          if (res.confirm) {
-            console.log('用户点击确定')
-          }
-        }
-      })
+      var that = this;
+      this.setData({
+        showTopTips: true
+      });
+      setTimeout(function () {
+        that.setData({
+          showTopTips: false
+        });
+      }, 3000);
     }   
   },
   bindgenderChange: function (e) {

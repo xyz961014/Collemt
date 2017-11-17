@@ -391,10 +391,12 @@ Page({
             return;
           }
           var i = wx.getStorageSync('history').length
-          if (i < 5) {
+          if (i < this.data.numall) {
             this.setData({
               'text': this.data.datatext[i]
-            })
+            });
+            var n = util.characterStats(this.data.datatext[i].text);
+            console.log(n);
             wx.setStorageSync('saved', false);
             this.setData({
               saved: false
