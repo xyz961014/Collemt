@@ -5,3 +5,27 @@
   .weui-form-preview__btn_disable{
   color: gainsboro;
   }
+  .img-icon{
+    width:25%;
+    margin:15px;
+  }
+
+  .weui-media-box__info__meta_extradone{
+    color: green;   
+  }
+
+  .weui-media-box__info__meta_extraundone{
+    color: red;
+  }
+
+  .weui-media-box__info__meta1{
+    text-align: right;
+  }
+
+  .weui-media-box__title_in-texty{
+    font-size: 24px;
+  }
+
+  .weui-media-box__titly{
+    padding-bottom: 80rpx;
+  }

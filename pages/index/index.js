@@ -1,6 +1,7 @@
 //index.js
 //获取应用实例
-const app = getApp()
+const app = getApp();
+const util = require('../../utils/util.js')
 var recordingdone = {
   score: 0,
   time: new Date(),
@@ -47,7 +48,8 @@ Page({
         this.setData({
           userInfo: res.userInfo,
           hasUserInfo: true
-        })
+        });
+        this.onShow();
       }
     } else {
       // 在没有 open-type=getUserInfo 版本的兼容处理
@@ -76,6 +78,7 @@ Page({
       }
     }
     
+    
     //匹配的用户信息向本地缓存中传入历史记录
 
   },
@@ -87,52 +90,53 @@ Page({
   },*/
   onShow: function() {
     var that = this;
-    wx.getStorage({
-      key: 'MyOpenid',
-      success: function (res) {
-        wx.showLoading({
-          title: '获取用户信息',
-        })
-        wx.request({
-          url: 'https://60755112.collemt.club/onGetinfo',
-          method: 'GET',
-          data: {
-            openid: res.data.openid
-          },
-          header: {
-            'content-type': 'application/json'
-          },
-          success: function (res2) {
-            wx.hideLoading();
-            wx.setStorageSync('MyOpenid', res2.data);
-            console.log(res2.data);
-            that.setData({
-              gender: res2.data.gender,
-              birthplace: res2.data.address,
-              mobile: res2.data.phonenumber,
-              cur_pkg: res2.data.cur_pkg,
-              completed: res2.data.completed,
-              unpaid: res2.data.unpaid
-            })
-            console.log(res2.data);
-            if (res2.data.cur_pkg !== (wx.getStorageSync('data').packageID || -1)) {
-              that.newpackage();
-            }
-          },
-          fail: function () {
-            wx.showModal({
-              title: '提醒',
-              content: '请连接网络',
-              success: function (res) {
-                if (res.confirm) {
-                  console.log('用户点击确定')
-                }
+      wx.getStorage({
+        key: 'MyOpenid',
+        success: function (res) {
+          wx.showLoading({
+            title: '获取用户信息',
+          })
+          wx.request({
+            url: 'https://60755112.collemt.club/onGetinfo',
+            method: 'GET',
+            data: {
+              openid: res.data.openid
+            },
+            header: {
+              'content-type': 'application/json'
+            },
+            success: function (res2) {
+              wx.hideLoading();
+              wx.setStorageSync('MyOpenid', res2.data);
+              console.log(res2.data);
+              that.setData({
+                gender: res2.data.gender,
+                birthplace: res2.data.address,
+                mobile: res2.data.phonenumber,
+                cur_pkg: res2.data.cur_pkg,
+                completed: res2.data.completed,
+                unpaid: res2.data.unpaid
+              })
+              console.log(res2.data);
+              if (res2.data.cur_pkg !== (wx.getStorageSync('data').packageID || -1)) {
+                that.newpackage();
               }
-            })
-          }
-        })
-      },
-    });
+            },
+            fail: function () {
+              wx.showModal({
+                title: '提醒',
+                content: '请连接网络',
+                success: function (res) {
+                  if (res.confirm) {
+                    console.log('用户点击确定')
+                  }
+                }
+              })
+            }
+          })
+        },
+      });
+    
     //从缓存同步历史数据
     /*if (!wx.getStorageSync('pkgon')) {
       this.setData({
@@ -178,7 +182,6 @@ Page({
   getUserInfo: function(e) {
     app.globalData.userInfo = e.detail.userInfo;
     var that = this;
-    //假装在这里注册
     //判断是否注册
     wx.getStorage({
       key: 'MyOpenid',
@@ -187,7 +190,7 @@ Page({
         if (res.data.phonenumber === "0") //注意返回什么
         {
           wx.navigateTo({
-            url: 'pages/register/register',
+            url: 'pages/register/register?modified=0',
           })
         }
         else {
@@ -333,7 +336,8 @@ Page({
                       var item = {
                         textID: n + 1,
                         text: textlist[n],
-                        textdur: textlist[n].length * 300
+                        textdur: textlist[n].length * 300,
+                        textlen: util.characterStats(textlist[n])
                       };
                       if (item.textdur) {
                         packages.push(item);

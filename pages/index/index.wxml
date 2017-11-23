@@ -43,7 +43,7 @@
                 <view class="weui-cell__bd">当前任务编号</view>
                 <view class="weui-cell__ft weui-cell__ft_in-access">点击获取新任务</view>
             </view>
-            <view wx:else class="weui-cell" bindtap='uploadpackage'>
+            <view wx:else class="weui-cell">
                 <view class="weui-cell__bd">当前任务编号</view>
                 
                 <view class="weui-cell__ft">{{cur_pkg}}</view>

@@ -37,26 +37,40 @@ Page({
       text: "",//文本
       textID: 0,//文本ID
       textdur: 0,//文本建议时长
+      textlen: 0,//文本字数
     },
     record: {
+      //recorded:false, //是否录制,使用cur_pkg来代替
       time: "", // 录制时间
       duration: 0, //录制时长
       score: 0, //得分
       savepath: "", //录音文件的保存路径
-      size: 0, //文件大小
-      uploaded: false // 是否已经上传
+      size: 0, //文件大小\
+      saved: false
     },
+
     view: {
       second: 0, // 秒数
       ms: 0, //毫秒数
       TimerID: 0, //计时器ID
-      durstring: "0.000" //计时字符串
+      durstring: "0.000", //计时字符串
+      Isplay: false
     },
     hasUserInfo: false, //是否获取用户信息
     recordingbool: false, //是否正在录音
     saved: false, //是否已经保存
-    numall: 0
+    numall: 0,    //总长度
+    cur_text:0,   //当前文本指针
+    pkgon: false, //当前任务包状态
+    cur_pkg: -1,
+    myopenid: '',
+    numfinished: 0,
+    numpackage: '未获取',
+    percentage: 0,
+    canIUse: wx.canIUse('button.open-type.getUserInfo'),
+    canupload: false,
   },
+
   recordbuttontap: function(){
     wx.getSetting({
       success(res) {
@@ -67,22 +81,23 @@ Page({
               // 用户已经同意小程序使用录音功能，后续调用 wx.startRecord 接口不会弹窗询问
               var curP = getCurrentPages();
               var thisp = curP[curP.length - 1];
+              console.log("开始录音")
               wx.startRecord({
-                success: function(res) {
+                success: function(res1) {
                   /*wx.showToast({
                     title: 'L0ading',
                     icon: "loading",
                     duration: 500
                   })*/
                   wx.saveFile({
-                    tempFilePath: res.tempFilePath,
-                    success: function (res) {
+                    tempFilePath: res1.tempFilePath,
+                    success: function (res2) {
                       //成功调用时保存文件路径
                       thisp.setData({
-                        'record.savepath': res.savedFilePath
+                        'record.savepath': res2.savedFilePath
                       })
                       wx.getFileInfo({
-                        filePath: res.savedFilePath,
+                        filePath: res2.savedFilePath,
                         success: function (e) {
                           thisp.setData({
                             'record.size': e.size / 1024
@@ -102,18 +117,22 @@ Page({
         } else {
           var curP = getCurrentPages();
           var thisp = curP[curP.length - 1];
+          console.log("开始录音")
           wx.startRecord({
-            success: function (res) {
+            success: function (res1) {
+              console.log("开始录音")
               wx.saveFile({
-                tempFilePath: res.tempFilePath,
-                success: function(res) {
+                tempFilePath: res1.tempFilePath,
+                success: function(res2) {
+                  console.log("成功调用保存文件路径")
                   //成功调用时保存文件路径
                   thisp.setData({
-                    'record.savepath': res.savedFilePath,
+                    'record.savepath': res2.savedFilePath,
                   })
+
                   //得到录音文件大小
                   wx.getFileInfo({
-                    filePath: res.savedFilePath,
+                    filePath: res2.savedFilePath,
                     success: function(e) {
                       thisp.setData({
                         'record.size': e.size / 1024
@@ -169,6 +188,8 @@ Page({
             'record.savepath': "",
             'record.duration': 0,
             'record.score': 0,
+            'record.size': 0,
+            'record.saved': false,
             'view.TimerID': 0,
             'view.second': 0,
             'view.ms': 0,
@@ -179,6 +200,7 @@ Page({
     } 
 
   },
+
   resetbuttontap: function() {
     if (this.data.recordingbool) {
       wx.stopRecord();
@@ -195,27 +217,51 @@ Page({
       'record.savepath': "",
       'record.duration': 0,
       'record.score': 0,
-      'record.uploaded': false,
+      'record.size': 0,
+      'record.saved': false,
       'view.TimerID': 0,
       'view.second': 0,
       'view.ms': 0,
       'view.durstring': "0.000"
-    })
-
+    });
+    var history = wx.getStorageSync('history') || [];
+    var cur_textID = wx.getStorageSync('cur_text');
+    history[cur_textID].record = this.data.record;
+    wx.setStorageSync('history', history);
+    this.onShow();
   },
   playvoice: function() {
+    this.setData({
+      Isplay: true
+    });
+    var that = this;
     wx.playVoice({
-      filePath: this.data.record.savepath
+      filePath: this.data.record.savepath,
+      complete: function() {
+        that.setData({
+          Isplay: false
+        })
+      }
     })
-  },
-  pausevoice: function () {
-    wx.pauseVoice();
+    
   },
   stopvoice: function () {
+    this.setData({
+      Isplay: false
+    });
     wx.stopVoice();
   },
-  savebuttontap: function() {
+
+  savebuttontap: function() {           
+    //保存到历史缓存的时候有问题，k可以不用删除再来unshift
+    //每录一次就自动保存，自动覆盖，不用提醒他们有没有保存
   var history = wx.getStorageSync('history') || [];
+  var cur_textID = wx.getStorageSync('cur_text');
+  this.setData({
+    'record.saved': true
+  })
+  history[cur_textID].record=this.data.record;
+  /*
   if (this.data.record.duration !== 0) {
       var dellist = [];
       for (var i = history.length - 1; i >= 0; i--) {
@@ -229,24 +275,51 @@ Page({
           text: this.data.text,
           record: this.data.record
       });
-
-
+    */
       wx.setStorageSync('history', history);
-      wx.showToast({
-        title: '保存成功',
+      var saved = true;
+
+      for (var i = 0; i < this.data.numall; i++) {
+        if (history[i].record.duration == 0) {
+          saved = false;
+          break;
+        }
+      }
+      this.setData({
+        canupload: saved
       });
-      wx.setStorageSync('saved', true);
+      var that = this;
+      if (saved) {
+        wx.showModal({
+          title: '提醒',
+          content: '恭喜您已完成本任务包的所有任务，是否现在上传？',
+          success: function(res) {
+            if (res.confirm) {
+              that.uploadpackage();
+            }
+            that.onShow();
+          }
+        })
+      }
+      else {
+        wx.showToast({
+          title: '保存成功',
+        });
+        this.onShow();
+      }
+      
+   /*   wx.setStorageSync('saved', true);
       this.setData({
         saved: true
-      })
-    }
-    else {
+      })*/
+    //}
+   /* else {
       wx.showModal({
         title: '错误',
         content: '尚未录音，不能保存',
         showCancel: false
       })
-    }
+    }*/
     console.log(history.length);
     /*var saveinfo = {
       text: this.data.text,
@@ -300,12 +373,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    wx.setStorageSync('saved', true);
-    var textdata = wx.getStorageSync('data');
-    this.setData({
-      'datatext': textdata.packages
-    });
-    
+    //console.log("测试")
   },
 
   /**
@@ -325,11 +393,6 @@ Page({
         hasUserInfo: true
       })
     }
-    var textdata = wx.getStorageSync('data') || [];
-    this.setData({
-      'datatext': textdata.packages,
-      'numall': (textdata.packages || []).length
-    });
     console.log(this.data.hasUserInfo);
     if (!this.data.hasUserInfo) {
       wx.showModal({
@@ -339,45 +402,36 @@ Page({
         success: function(){
           wx.switchTab({
             url: '/pages/index/index'
-          })
+          });
+          return;
         }
       })
     } else {
-      //判断是否是重录
-      if (wx.getStorageSync('rerecordbool')) {
-        //加载重录信息
-        var textinfo = wx.getStorageSync('textinfo');
-          this.setData({
-            text: textinfo,
-            saved: false
-          })
-          this.setData({
-            'record.time': "",
-            'record.savepath': "",
-            'record.duration': 0,
-            'record.score': 0,
-            'record.uploaded': false,
-            'view.TimerID': 0,
-            'view.second': 0,
-            'view.ms': 0,
-            'view.durstring': "0.000"
-          });
-          wx.setStorageSync('rerecordbool', false)
+      var textdata = wx.getStorageSync('data');
+      var history = wx.getStorageSync('history') || [];
+      this.setData({
+        pkgon: wx.getStorageSync('pkgon')
+      })
+      if (textdata.packages) { // 如果已经获取了数据包，存到本地页面
+        this.setData({
+          'datatext': textdata.packages,
+          'numall': textdata.packages.length,
+          'cur_text': wx.getStorageSync('cur_text') || 0,
+          'cur_pkg': textdata.packageID
+        });
       }
-      else {
-        if (wx.getStorageSync('saved')) {
-          this.setData({
-            'record.time': "",
-            'record.savepath': "",
-            'record.duration': 0,
-            'record.score': 0,
-            'record.uploaded': false,
-            'view.TimerID': 0,
-            'view.second': 0,
-            'view.ms': 0,
-            'view.durstring': "0.000"
+      wx.setStorageSync('cur_text', this.data.cur_text)
+      if (textdata.packages && history.length === 0) {          //当前有包，并且没有加载过才会预加载
+        for (var i = 0; i < this.data.numall; i++) {
+          console.log('预加载')
+          history.push({
+            text: textdata.packages[i],
+            record: this.data.record
           });
-          if (!wx.getStorageSync('pkgon')) {
+        }
+        wx.setStorageSync('history', history);
+      }
+      /*if (!wx.getStorageSync('pkgon')) {
             wx.showModal({
               title: '没有正在执行的任务包',
               content: '请先获取任务包',
@@ -387,22 +441,45 @@ Page({
                   url: '/pages/index/index'
                 })
               }
-            });
+            })
             return;
-          }
-          var i = wx.getStorageSync('history').length
+          }*/
+          var i = wx.getStorageSync('cur_text')    
           if (i < this.data.numall) {
             this.setData({
-              'text': this.data.datatext[i]
+              'text': history[i].text,
+              'record':history[i].record,
+              'view.TimerID': 0,
+              'view.second': 0,
+              'view.ms': 0,
+              'view.durstring': "0.000",
             });
-            var n = util.characterStats(this.data.datatext[i].text);
+            var n = util.characterStats(this.data.datatext[i].text); //字数统计
             console.log(n);
-            wx.setStorageSync('saved', false);
+            /*wx.setStorageSync('saved', false);   //取消saved
             this.setData({
               saved: false
-            })
+            })*/
           }
-          else {
+          var saved = true;
+          var numf = 0;
+          var history = wx.getStorageSync('history')
+          for (var i = 0; i < this.data.numall; i++) {
+            if (history[i].record.duration == 0) {
+              saved = false;
+            }
+            else {
+              numf++;
+            }
+
+          }
+          if (history.length === 0)
+            saved = false;
+          this.setData({
+            canupload: saved,
+            numfinished: numf
+          });
+         /* else {       //如何判断所有包都做完?集成到上传里面去
             wx.showModal({
               title: '没有新任务',
               content: '请上传任务包后获取新任务包',
@@ -413,47 +490,261 @@ Page({
                 })
               }
             })
-          }
-        }
-      }
+          }*/
+       // }
+      
     }
   },
-  
+  lastbuttontap: function () { 
+    var that = this;
+    if (!this.data.record.saved && this.data.record.duration) {
+      wx.showModal({
+        title: '提醒',
+        content: '当前录音尚未保存，是否继续？',
+        success: function(res) {
+          if (res.confirm) {
+            var cur_textID = wx.getStorageSync('cur_text')
+            if (cur_textID >= 1) {
+              cur_textID--;
+            }
+            that.setData({
+              cur_text: cur_textID
+            })
+            wx.setStorageSync('cur_text', that.data.cur_text)
+            that.onShow();
+          }
+         
+        }
+      })
+    } 
+    else {
+      var cur_textID = wx.getStorageSync('cur_text')
+      if (cur_textID >= 1) {
+        cur_textID--;
+      }
+      this.setData({
+        cur_text: cur_textID
+      })
+      wx.setStorageSync('cur_text', this.data.cur_text)
+      this.onShow();
+    }  
+    
+  },
+
   nextbuttontap: function() {
-    this.onShow();
-  },
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-    
+    var that = this;
+    if (!this.data.record.saved && this.data.record.duration) {
+      wx.showModal({
+        title: '提醒',
+        content: '当前录音尚未保存，是否继续？',
+        success: function(res) {
+          if (res.confirm) {
+            var cur_textID = wx.getStorageSync('cur_text')
+            if (cur_textID < that.data.numall - 1) {
+              cur_textID++;
+            }
+            that.setData({
+              cur_text: cur_textID
+            })
+            wx.setStorageSync('cur_text', that.data.cur_text)
+            that.onShow();
+          }
+          
+        }
+      })
+    }
+    else {
+      var cur_textID = wx.getStorageSync('cur_text')
+      if (cur_textID < this.data.numall - 1) {
+        cur_textID++;
+      }
+      this.setData({
+        cur_text: cur_textID
+      })
+      wx.setStorageSync('cur_text', this.data.cur_text)
+      this.onShow();
+    }
   },
 
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-    
-  },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-    
-  },
 
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-    
-  },
+  newpackage: function () {
+    wx.getStorage({
+      key: 'MyOpenid',
+      success: function (res) {
+        if (res.data.phonenumber === "0") //注意返回什么
+        {
+          wx.showToast({
+            title: '尚未注册',
+            icon: "loading",
+            duration: 1000,
+            complete: function () {
+              wx.navigateTo({
+                url: '/pages/index/pages/register/register?modified=0',
+              })
+            }
+          })
 
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-    
-  }
+        }
+        else {
+          //清除缓存
+          wx.getSavedFileList({
+            success: function (res) {
+              console.log(res.fileList);
+              var l = res.fileList.length;
+              for (var i = 0; i < l; i++) {
+                wx.removeSavedFile({
+                  filePath: res.fileList[i].filePath,
+                  complete: function (res) {
+                    console.log(res)
+                  }
+                })
+              }
+            }
+          })
+          //获取新任务包
+          var datastr = {};
+          var that = this;
+          wx.getStorage({
+            key: 'MyOpenid',
+            success: function (res) {
+              wx.request({
+                url: 'https://' + app.config.host + '/onFetch',
+                method: 'GET',
+                data: {
+                  openid: res.data.openid
+                },
+                success: function (res) {
+                  console.log(res.data);
+                  datastr = res.data;
+                  if (datastr.stat == -1) {
+                    wx.showModal({
+                      title: '错误',
+                      content: datastr.msg,
+                      showCancel: false
+                    })
+                  }
+                  else {
+                    //datastr = {
+                    //'pkgid': 91,
+                    //'text': '录一段话吧录一段话吧录一段话吧录一段话吧录一段话吧\n录两段话吧录两段话吧录两段话吧录两段话吧录两段话吧\n录三段话吧录三段话吧录三段话吧录三段话吧录三段话吧\n录四段话吧录四段话吧录四段话吧录四段话吧录四段话吧\n录五段话吧录五段话吧录五段话吧录五段话吧录五段话吧'
+
+                    var textlist = datastr.text.split('\n');
+                    var textdata = {
+                      packageID: datastr.pkgid,
+                      packages: []
+                    }
+                    var packages = [];
+                    for (var n = 0; n < textlist.length; n++) {
+                      var item = {
+                        textID: n + 1,
+                        text: textlist[n],
+                        textdur: textlist[n].length * 300,
+                        textlen: util.characterStats(textlist[n])
+                      };
+                      if (item.textdur) {
+                        packages.push(item);
+                      }
+
+                    }
+                    textdata.packages = packages;
+                    wx.setStorageSync('data', textdata);
+                    wx.setStorageSync('pkgon', true);
+                    var curP = getCurrentPages();
+                    var thisp = curP[curP.length - 1];//获取当前页面
+                    thisp.setData({
+                      canNewpackage: false,
+                      numpackage: textdata.packageID,
+                      numall: textdata.packages.length,
+                    });
+                    thisp.onShow();
+                  }
+                },
+                /*complete: function() {
+                  wx.switchTab({
+                    url: '/pages/studio/studio',
+                  })
+                }*/
+              });
+            },
+          });
+        }
+      }
+    })
+  },
+  uploadpackage: function () {   //不能够再通过长度来判断
+    if (!this.data.canupload) {
+      wx.showModal({
+        title: '错误',
+        content: '有尚未完成的任务',
+        showCancel: false
+      });
+      return;
+    }
+    else {
+      var that = this;
+      wx.getStorage({
+        key: 'MyOpenid',
+        success: res => {
+          var history = wx.getStorageSync('history');
+          for (var i = 0; i < history.length; i++) {
+            console.log(history[i].record.savepath);
+            wx.uploadFile({
+              url: 'https://60755112.collemt.club/file_upload',
+              filePath: history[i].record.savepath,
+              name: 'voices',
+              formData: {
+                pkgid: wx.getStorageSync('data').packageID.toString(),
+                line: history[i].text.textID.toString(),
+                openid: res.data.openid,
+                total: parseInt(i / (history.length - 1)).toString()
+              },
+              success: function (res2) {
+                console.log(res2.data);
+                console.log(i)
+                var data = JSON.parse(res2.data);
+                //wx.removeSavedFile({
+                //  filePath: history[i].record.savepath,
+                //})
+
+                if (data.stat == 2) {
+                  console.log(res2.data);
+                  wx.setStorageSync('history', []);
+                  wx.setStorageSync('pkgon', false);
+                  wx.setStorageSync('data', {})
+                  that.setData({
+                    datatext: [],
+                    'text.text': '',
+                    'text.textID': 0,
+                    'text.textdur': 0,
+                    'text.textlen': 0,
+                    'record.time': "",
+                    'record.savepath': "",
+                    'record.duration': 0,
+                    'record.score': 0,
+                    'record.size': 0,
+                    'record.saved': false,
+                    'view.TimerID': 0,
+                    'view.second': 0,
+                    'view.ms': 0,
+                    'view.durstring': "0.000",
+                    cur_text: 0,
+                    numall: 0,
+                    cur_pkg: -1,
+                    canupload: false
+                  });
+                  wx.setStorageSync('cur_text', 0)
+                  that.onShow();
+                }
+
+              }
+            });
+          }
+        }
+      });
+
+    }
+    //上传任务包
+
+  },
 })
