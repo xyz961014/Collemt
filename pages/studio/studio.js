@@ -161,7 +161,7 @@ Page({
     //保存本次数据
     this.setData({
       recordingbool: false,
-      'record.duration': (this.data.view.second + this.data.view.ms / 1000).toFixed(2),
+      'record.duration': (this.data.view.second + this.data.view.ms / 1000).toFixed(3),
       'record.time': util.formatTime(new Date(Date.now())),
       'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms -this.data.text.textdur) * 0.8   
     })
@@ -452,7 +452,7 @@ Page({
               'view.TimerID': 0,
               'view.second': 0,
               'view.ms': 0,
-              'view.durstring': "0.000",
+              'view.durstring': history[i].record.duration,
             });
             var n = util.characterStats(this.data.datatext[i].text); //字数统计
             console.log(n);
@@ -697,6 +697,7 @@ Page({
                 pkgid: wx.getStorageSync('data').packageID.toString(),
                 line: history[i].text.textID.toString(),
                 openid: res.data.openid,
+                strlen: history[i].text.textlen.toString(),
                 total: parseInt(i / (history.length - 1)).toString()
               },
               success: function (res2) {

@@ -31,8 +31,8 @@ Page({
     mobile: '',
     cur_pkg: 0,
     completed: 0,
-    unpaid: 0
-
+    unpaid: 0,
+    chars: 0
   },
   //事件处理函数
   onLoad: function () {
@@ -115,10 +115,11 @@ Page({
                 mobile: res2.data.phonenumber,
                 cur_pkg: res2.data.cur_pkg,
                 completed: res2.data.completed,
-                unpaid: res2.data.unpaid
+                unpaid: res2.data.unpaid,
+                chars: res2.data.chars
               })
               console.log(res2.data);
-              if (res2.data.cur_pkg !== (wx.getStorageSync('data').packageID || -1)) {
+              if (res2.data.cur_pkg !== wx.getStorageSync('data').packageID && res2.data.cur_pkg !== -1) {
                 that.newpackage();
               }
             },
@@ -280,7 +281,8 @@ Page({
                 url: '/pages/index/pages/register/register?modified=0',
               })
             }
-          })
+          });
+          return;
           
         }
         else {
