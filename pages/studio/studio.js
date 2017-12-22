@@ -1,5 +1,13 @@
 const app = getApp(); 
-const util = require('../../utils/util.js')
+const util = require('../../utils/util.js');
+const recorderManager = wx.getRecorderManager();
+const innerAudioContext = wx.createInnerAudioContext();
+innerAudioContext.obeyMuteSwitch = false;
+const options = {
+  sampleRate: 16000,
+  numberOfChannels: 1,
+  format: 'mp3'
+};
 //计时函数
 var Timerstart = function(){
   var curP = getCurrentPages();
@@ -25,6 +33,8 @@ var Timerstart = function(){
     'view.TimerID': timerID
   })//存储计时器ID，之后停的时候用
 };
+
+
 
 Page({
 
@@ -72,184 +82,205 @@ Page({
   },
 
   recordbuttontap: function(){
-    wx.getSetting({
-      success(res) {
-        if (!res.authSetting['scope.record']) {
-          wx.authorize({
-            scope: 'scope.record',
-            success() {
-              // 用户已经同意小程序使用录音功能，后续调用 wx.startRecord 接口不会弹窗询问
-              var curP = getCurrentPages();
-              var thisp = curP[curP.length - 1];
-              console.log("开始录音")
-              wx.startRecord({
-                success: function(res1) {
-                  /*wx.showToast({
-                    title: 'L0ading',
-                    icon: "loading",
-                    duration: 500
-                  })*/
-                  wx.saveFile({
-                    tempFilePath: res1.tempFilePath,
-                    success: function (res2) {
-                      //成功调用时保存文件路径
-                      thisp.setData({
-                        'record.savepath': res2.savedFilePath
-                      })
-                      wx.getFileInfo({
-                        filePath: res2.savedFilePath,
-                        success: function (e) {
-                          thisp.setData({
-                            'record.size': e.size / 1024
-                          })
-                        }
-                      })
-                    }
-                  });
-                }
-              });
-              thisp.setData({
-                recordingbool: true
-              });
-              Timerstart();                       
-            }
-          })
-        } else {
-          var curP = getCurrentPages();
-          var thisp = curP[curP.length - 1];
-          console.log("开始录音")
-          wx.startRecord({
-            success: function (res1) {
-              console.log("开始录音")
-              wx.saveFile({
-                tempFilePath: res1.tempFilePath,
-                success: function(res2) {
-                  console.log("成功调用保存文件路径")
-                  //成功调用时保存文件路径
-                  thisp.setData({
-                    'record.savepath': res2.savedFilePath,
-                  })
+    if (wx.canIUse('getRecorderManager')) {
+      recorderManager.start(options);
+    }
+    else
+    {
+      wx.getSetting({
+        success(res) {
+          if (!res.authSetting['scope.record']) {
+            wx.authorize({
+              scope: 'scope.record',
+              success() {
+                // 用户已经同意小程序使用录音功能，后续调用 wx.startRecord 接口不会弹窗询问
+                var curP = getCurrentPages();
+                var thisp = curP[curP.length - 1];
+                //console.log("开始录音")
+                wx.startRecord({
+                  success: function (res1) {
+                    /*wx.showToast({
+                      title: 'L0ading',
+                      icon: "loading",
+                      duration: 500
+                    })*/
+                    wx.saveFile({
+                      tempFilePath: res1.tempFilePath,
+                      success: function (res2) {
+                        //成功调用时保存文件路径
+                        thisp.setData({
+                          'record.savepath': res2.savedFilePath
+                        })
+                        wx.getFileInfo({
+                          filePath: res2.savedFilePath,
+                          success: function (e) {
+                            thisp.setData({
+                              'record.size': e.size / 1024
+                            })
+                          }
+                        })
+                      }
+                    });
+                  }
+                });
+                thisp.setData({
+                  recordingbool: true
+                });
+                Timerstart();
+              }
+            })
+          } else {
+            var curP = getCurrentPages();
+            var thisp = curP[curP.length - 1];
+            //console.log("开始录音")
+            wx.startRecord({
+              success: function (res1) {
+                //console.log("开始录音")
+                wx.saveFile({
+                  tempFilePath: res1.tempFilePath,
+                  success: function (res2) {
+                    //console.log("成功调用保存文件路径")
+                    //成功调用时保存文件路径
+                    thisp.setData({
+                      'record.savepath': res2.savedFilePath,
+                    })
 
-                  //得到录音文件大小
-                  wx.getFileInfo({
-                    filePath: res2.savedFilePath,
-                    success: function(e) {
-                      thisp.setData({
-                        'record.size': e.size / 1024
-                      })
-                    }
-                  })
-                }
-              });
-            }
-          });
-          thisp.setData({
-            recordingbool: true
-          });
-          Timerstart();
+                    //得到录音文件大小
+                    wx.getFileInfo({
+                      filePath: res2.savedFilePath,
+                      success: function (e) {
+                        thisp.setData({
+                          'record.size': e.size / 1024
+                        })
+                      }
+                    })
+                  }
+                });
+              }
+            });
+            thisp.setData({
+              recordingbool: true
+            });
+            Timerstart();
+          }
         }
-      }
-    });
-    this.setData({
-      recordingbool: true
-    });
+      });
+    }
   },
   stopbuttontap: function() {
-    wx.stopRecord()
-    clearInterval(this.data.view.TimerID);//停止计时
-
-    //保存本次数据
-    this.setData({
-      recordingbool: false,
-      'record.duration': (this.data.view.second + this.data.view.ms / 1000).toFixed(3),
-      'record.time': util.formatTime(new Date(Date.now())),
-      'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms -this.data.text.textdur) * 0.8   
-    })
-    /*wx.getFileInfo({
-      filePath: this.data.record.savepath,
-      success: function(res) {
-        console.log(res.size)
-      }
-    })*/
-    if (this.data.record.duration > 30000){
-      //录音时长不符合要求打回去,目前设置的要求30s内
-      wx.showModal({
-        title: '警告',
-        content: '录制时长不符合要求，要求为30s以内',
-        showCancel: false,
-        success: function() {
-          var curP = getCurrentPages();
-          var thisp = curP[curP.length - 1];
-          wx.removeSavedFile({
-            filePath: thisp.data.record.savepath,
-          })
-          thisp.setData({
-            'record.time': "",
-            'record.savepath': "",
-            'record.duration': 0,
-            'record.score': 0,
-            'record.size': 0,
-            'record.saved': false,
-            'view.TimerID': 0,
-            'view.second': 0,
-            'view.ms': 0,
-            'view.durstring': "0.000"
-          })
-        }
-      })
+    if (wx.canIUse('getRecorderManager')) {
+      recorderManager.stop();
+      //console.log('STOP');
     } 
+    else{
+      wx.stopRecord()
+      clearInterval(this.data.view.TimerID);//停止计时
+
+      //保存本次数据
+      this.setData({
+        recordingbool: false,
+        'record.duration': (this.data.view.second + this.data.view.ms / 1000).toFixed(3),
+        'record.time': util.formatTime(new Date(Date.now())),
+        'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms - this.data.text.textdur) * 0.8
+      })
+      if (this.data.record.duration > 30) {
+        //录音时长不符合要求打回去,目前设置的要求30s内
+        wx.showModal({
+          title: '警告',
+          content: '录制时长不符合要求，要求为30s以内',
+          showCancel: false,
+          success: function () {
+            var curP = getCurrentPages();
+            var thisp = curP[curP.length - 1];
+            wx.removeSavedFile({
+              filePath: thisp.data.record.savepath,
+            })
+            thisp.setData({
+              'record.time': "",
+              'record.savepath': "",
+              'record.duration': 0,
+              'record.score': 0,
+              'record.size': 0,
+              'record.saved': false,
+              'view.TimerID': 0,
+              'view.second': 0,
+              'view.ms': 0,
+              'view.durstring': "0.000"
+            })
+          }
+        })
+      }
+    }
 
   },
 
   resetbuttontap: function() {
-    if (this.data.recordingbool) {
-      wx.stopRecord();
-      clearInterval(this.data.view.TimerID);
-      this.setData({
-        recordingbool: false
-      })
+    if (wx.canIUse('getRecorderManager') && this.data.recordingbool) {
+      wx.setStorageSync('reset', true);
+      recorderManager.stop();
     }
-    wx.removeSavedFile({
-      filePath: this.data.record.savepath,
-    })
-    this.setData({
-      'record.time': "",
-      'record.savepath': "",
-      'record.duration': 0,
-      'record.score': 0,
-      'record.size': 0,
-      'record.saved': false,
-      'view.TimerID': 0,
-      'view.second': 0,
-      'view.ms': 0,
-      'view.durstring': "0.000"
-    });
-    var history = wx.getStorageSync('history') || [];
-    var cur_textID = wx.getStorageSync('cur_text');
-    history[cur_textID].record = this.data.record;
-    wx.setStorageSync('history', history);
-    this.onShow();
-  },
-  playvoice: function() {
-    this.setData({
-      Isplay: true
-    });
-    var that = this;
-    wx.playVoice({
-      filePath: this.data.record.savepath,
-      complete: function() {
-        that.setData({
-          Isplay: false
+    else 
+    {
+      if (this.data.recordingbool) {
+        wx.stopRecord();
+        clearInterval(this.data.view.TimerID);
+        this.setData({
+          recordingbool: false
         })
       }
-    })
+      wx.removeSavedFile({
+        filePath: this.data.record.savepath,
+      })
+      this.setData({
+        'record.time': "",
+        'record.savepath': "",
+        'record.duration': 0,
+        'record.score': 0,
+        'record.size': 0,
+        'record.saved': false,
+        'view.TimerID': 0,
+        'view.second': 0,
+        'view.ms': 0,
+        'view.durstring': "0.000"
+      });
+      var history = wx.getStorageSync('history') || [];
+      var cur_textID = wx.getStorageSync('cur_text');
+      history[cur_textID].record = this.data.record;
+      wx.setStorageSync('history', history);
+      this.onShow();
+    }
     
   },
+  playvoice: function() {
+    if (wx.canIUse('createInnerAudioContext')) {
+      innerAudioContext.src = this.data.record.savepath;
+      innerAudioContext.play();
+    } 
+    else {
+      this.setData({
+        Isplay: true
+      });
+      var that = this;
+      wx.playVoice({
+        filePath: this.data.record.savepath,
+        complete: function () {
+          that.setData({
+            Isplay: false
+          })
+        }
+      })
+    }   
+  },
   stopvoice: function () {
-    this.setData({
-      Isplay: false
-    });
-    wx.stopVoice();
+    if (wx.canIUse('createInnerAudioContext')) {
+      innerAudioContext.stop();
+    }
+    else {
+      this.setData({
+        Isplay: false
+      });
+      wx.stopVoice();
+    }
   },
 
   savebuttontap: function() {           
@@ -261,21 +292,6 @@ Page({
     'record.saved': true
   })
   history[cur_textID].record=this.data.record;
-  /*
-  if (this.data.record.duration !== 0) {
-      var dellist = [];
-      for (var i = history.length - 1; i >= 0; i--) {
-        //console.log(history.length);
-        if (history[i].text.textID === this.data.text.textID) {
-          //删除文件
-          history.splice(i, 1);
-        }
-      }
-      history.unshift({
-          text: this.data.text,
-          record: this.data.record
-      });
-    */
       wx.setStorageSync('history', history);
       var saved = true;
 
@@ -307,73 +323,120 @@ Page({
         });
         this.onShow();
       }
-      
-   /*   wx.setStorageSync('saved', true);
-      this.setData({
-        saved: true
-      })*/
-    //}
-   /* else {
-      wx.showModal({
-        title: '错误',
-        content: '尚未录音，不能保存',
-        showCancel: false
-      })
-    }*/
     console.log(history.length);
-    /*var saveinfo = {
-      text: this.data.text,
-      record: this.data.record
-    };
-    //saveinfo.text = this.data.text;
-    //saveinfo.record = this.data.record;
-    console.log(saveinfo);
-    app.globalData.history.unshift(saveinfo);
-    console.log(app.globalData.history);*/
   },
-  /*uploadbuttontap: function () {
-    //上传录音资料，包括globaldata中的code来获取用户的openid
-    //首先判断是否存在录音
-    var history = wx.getStorageSync('history') || [];
-    if (this.data.record.duration !== 0) {
-      //判断用户网络状况
-      //在这里上传
-      wx.showToast({
-        title: '假的上传成功',
-      });
-      var curP = getCurrentPages();
-      var thisp = curP[curP.length - 1];
-      thisp.setData({
-        'record.uploaded': true
-      });
-      var dellist = [];
-      for (var i = history.length - 1; i >= 0; i--) {
-        //console.log(history.length);
-        if (history[i].text.textID === this.data.text.textID) {
-          history.splice(i, 1);
-        }
-      }
-      //上传后保存到本地
-      history.unshift({
-        text: this.data.text,
-        record: this.data.record
-      });
-      wx.setStorageSync('history', history);
-    }
-    else {
-      wx.showModal({
-        title: '错误',
-        content: '尚未录音，不能上传',
-        showCancel: false
-      })
-    }
-
-  },*/
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
     //console.log("测试")
+    wx.setStorageSync('reset', false);
+    recorderManager.onStart(() => {
+      console.log('new API');
+      var curP = getCurrentPages();
+      var thisp = curP[curP.length - 1];
+      thisp.setData({
+        recordingbool: true
+      });
+      Timerstart();
+    });
+    recorderManager.onStop((res) => {
+      var curP = getCurrentPages();
+      var thisp = curP[curP.length - 1];
+      var isreset = wx.getStorageSync('reset');
+      if (isreset) {
+        clearInterval(this.data.view.TimerID);
+        thisp.setData({
+          recordingbool: false
+        })
+        wx.removeSavedFile({
+          filePath: this.data.record.savepath,
+        })
+        this.setData({
+          'record.time': "",
+          'record.savepath': "",
+          'record.duration': 0,
+          'record.score': 0,
+          'record.size': 0,
+          'record.saved': false,
+          'view.TimerID': 0,
+          'view.second': 0,
+          'view.ms': 0,
+          'view.durstring': "0.000"
+        });
+        var history = wx.getStorageSync('history') || [];
+        var cur_textID = wx.getStorageSync('cur_text');
+        history[cur_textID].record = this.data.record;
+        wx.setStorageSync('history', history);
+        this.onShow();
+        wx.setStorageSync('reset', false);
+      }
+      else 
+      {
+        clearInterval(this.data.view.TimerID);//停止计时
+        console.log('recorder stop', res);
+        var tempFilePath = res.tempFilePath;
+        thisp.setData({
+          'record.savepath': tempFilePath,
+          'record.size': res.fileSize / 1024
+        });
+        //保存本次数据
+        this.setData({
+          recordingbool: false,
+          'record.duration': (res.duration / 1000).toFixed(3),
+          'record.time': util.formatTime(new Date(Date.now())),
+          'record.score': this.data.text.textdur - Math.abs(1000 * res.duration - this.data.text.textdur) * 0.8,
+          'view.durstring': (res.duration / 1000).toFixed(3).toString()
+        })
+        if (this.data.record.duration > 30) {
+          //录音时长不符合要求打回去,目前设置的要求30s内
+          wx.showModal({
+            title: '警告',
+            content: '录制时长不符合要求，要求为30s以内',
+            showCancel: false,
+            success: function () {
+              wx.removeSavedFile({
+                filePath: thisp.data.record.savepath,
+              })
+              thisp.setData({
+                'record.time': "",
+                'record.savepath': "",
+                'record.duration': 0,
+                'record.score': 0,
+                'record.size': 0,
+                'record.saved': false,
+                'view.TimerID': 0,
+                'view.second': 0,
+                'view.ms': 0,
+                'view.durstring': "0.000"
+              })
+            }
+          })
+        }
+      }
+      
+    });
+    innerAudioContext.onPlay(() => {
+      var curP = getCurrentPages();
+      var thisp = curP[curP.length - 1];
+      thisp.setData({
+        Isplay: true
+      });
+    });
+    innerAudioContext.onStop(() => {
+      var curP = getCurrentPages();
+      var thisp = curP[curP.length - 1];
+      thisp.setData({
+        Isplay: false
+      });
+    });
+    innerAudioContext.onEnded(() => {
+      var curP = getCurrentPages();
+      var thisp = curP[curP.length - 1];
+      thisp.setData({
+        Isplay: false
+      });
+    })
   },
 
   /**
@@ -452,7 +515,7 @@ Page({
               'view.TimerID': 0,
               'view.second': 0,
               'view.ms': 0,
-              'view.durstring': history[i].record.duration,
+              'view.durstring': (history[i].record.duration * 1.0).toFixed(3).toString(),
             });
             var n = util.characterStats(this.data.datatext[i].text); //字数统计
             console.log(n);
@@ -683,6 +746,9 @@ Page({
     }
     else {
       var that = this;
+      wx.showLoading({
+        title: '上传中',
+      })
       wx.getStorage({
         key: 'MyOpenid',
         success: res => {
@@ -707,8 +773,12 @@ Page({
                 //wx.removeSavedFile({
                 //  filePath: history[i].record.savepath,
                 //})
-
+                //上传成功
                 if (data.stat == 2) {
+                  wx.hideLoading();
+                  wx.showToast({
+                    title: '上传成功',
+                  });
                   console.log(res2.data);
                   wx.setStorageSync('history', []);
                   wx.setStorageSync('pkgon', false);
