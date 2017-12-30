@@ -181,7 +181,7 @@ Page({
         recordingbool: false,
         'record.duration': (this.data.view.second + this.data.view.ms / 1000).toFixed(3),
         'record.time': util.formatTime(new Date(Date.now())),
-        'record.score': this.data.text.textdur - Math.abs(1000 * this.data.view.second + this.data.view.ms - this.data.text.textdur) * 0.8
+        'record.score': 0
       })
       if (this.data.record.duration > 30) {
         //录音时长不符合要求打回去,目前设置的要求30s内
@@ -238,6 +238,7 @@ Page({
         'record.score': 0,
         'record.size': 0,
         'record.saved': false,
+        'record.passed': false,
         'view.TimerID': 0,
         'view.second': 0,
         'view.ms': 0,
@@ -288,42 +289,118 @@ Page({
     //每录一次就自动保存，自动覆盖，不用提醒他们有没有保存
   var history = wx.getStorageSync('history') || [];
   var cur_textID = wx.getStorageSync('cur_text');
-  this.setData({
-    'record.saved': true
-  })
+
   history[cur_textID].record=this.data.record;
       wx.setStorageSync('history', history);
-      var saved = true;
-
-      for (var i = 0; i < this.data.numall; i++) {
-        if (history[i].record.duration == 0) {
-          saved = false;
-          break;
-        }
-      }
       this.setData({
-        canupload: saved
+        'record.saved': true
+      })
+         
+      var history = wx.getStorageSync('history');
+      var i = cur_textID;
+      wx.showLoading({
+        title: '评估中',
       });
       var that = this;
-      if (saved) {
-        wx.showModal({
-          title: '提醒',
-          content: '恭喜您已完成本任务包的所有任务，是否现在上传？',
-          success: function(res) {
-            if (res.confirm) {
-              that.uploadpackage();
+      wx.getStorage({
+        key: 'MyOpenid',
+        success: res => {
+          //console.log(history[i].record.savepath);
+          wx.uploadFile({
+            url: 'https://60755112.collemt.club/test_examples',
+            filePath: history[i].record.savepath,
+            name: 'examples',
+            formData: {
+              openid: res.data.openid,
+              text: history[i].text.text
+            },
+            success: function (res2) {
+              wx.hideLoading();
+              var data = JSON.parse(res2.data);
+              console.log(data);
+              history[i].record.score = data.score;
+              history[i].record.saved = true;
+              if (data.score >= 90) {
+                history[i].record.passed = true;
+              }
+              else {
+                history[i].record.passed = false;
+              }
+              wx.setStorageSync('history', history);
+              var saved = true;
+              for (var ii = 0; ii < that.data.numall; ii++) {
+                if (!history[ii].record.passed) {
+                  saved = false;
+                  break;
+                }
+              }
+              that.setData({
+                canupload: saved
+              });
+                if (saved) {
+                  wx.showModal({
+                    title: '提醒',
+                    content: '恭喜您已完成本任务包的所有任务，是否现在上传？',
+                    success: function (res) {
+                      if (res.confirm) {
+                        that.uploadpackage();
+                      }
+                      that.onShow();
+                    }
+                  })
+                }
+                else {
+                  wx.showToast({
+                    title: '保存成功',
+                  });
+                  that.onShow();
+                }
+              
+              
+
+            },
+            fail: function () {
+              console.log('failed');
             }
-            that.onShow();
-          }
-        })
-      }
-      else {
-        wx.showToast({
-          title: '保存成功',
-        });
-        this.onShow();
-      }
+          });
+        }
+      });
+
+      
     console.log(history.length);
+  },
+  evalbuttontap: function() {
+    var cur_textID = wx.getStorageSync('cur_text');
+    var history = wx.getStorageSync('history');
+    var i = cur_textID;
+    wx.showLoading({
+      title: '评估中',
+    });
+    wx.getStorage({
+      key: 'MyOpenid',
+      success: res => {
+        //console.log(history[i].record.savepath);
+        wx.uploadFile({
+          url: 'https://60755112.collemt.club/test_examples',
+          filePath: history[i].record.savepath,
+          name: 'examples',
+          formData: {
+            openid: res.data.openid,
+            text: history[i].text.text
+          },
+          success: function (res2) {
+            wx.hideLoading();
+            console.log(res2.data);
+            var data = JSON.parse(res2.data);
+          },
+          fail: function () {
+            console.log('failed');
+          }
+        });
+      }
+    });
+
+            
   },
   /**
    * 生命周期函数--监听页面加载
@@ -352,13 +429,14 @@ Page({
         wx.removeSavedFile({
           filePath: this.data.record.savepath,
         })
-        this.setData({
+        thisp.setData({
           'record.time': "",
           'record.savepath': "",
           'record.duration': 0,
           'record.score': 0,
           'record.size': 0,
           'record.saved': false,
+          'record.passed': false,
           'view.TimerID': 0,
           'view.second': 0,
           'view.ms': 0,
@@ -385,7 +463,7 @@ Page({
           recordingbool: false,
           'record.duration': (res.duration / 1000).toFixed(3),
           'record.time': util.formatTime(new Date(Date.now())),
-          'record.score': this.data.text.textdur - Math.abs(1000 * res.duration - this.data.text.textdur) * 0.8,
+          'record.score': 0,
           'view.durstring': (res.duration / 1000).toFixed(3).toString()
         })
         if (this.data.record.duration > 30) {
@@ -528,7 +606,7 @@ Page({
           var numf = 0;
           var history = wx.getStorageSync('history')
           for (var i = 0; i < this.data.numall; i++) {
-            if (history[i].record.duration == 0) {
+            if (!history[i].record.passed) {
               saved = false;
             }
             else {
@@ -664,73 +742,82 @@ Page({
                 })
               }
             }
-          })
-          //获取新任务包
-          var datastr = {};
-          var that = this;
-          wx.getStorage({
-            key: 'MyOpenid',
-            success: function (res) {
-              wx.request({
-                url: 'https://' + app.config.host + '/onFetch',
-                method: 'GET',
-                data: {
-                  openid: res.data.openid
-                },
-                success: function (res) {
-                  console.log(res.data);
-                  datastr = res.data;
-                  if (datastr.stat == -1) {
-                    wx.showModal({
-                      title: '错误',
-                      content: datastr.msg,
-                      showCancel: false
-                    })
-                  }
-                  else {
-                    //datastr = {
-                    //'pkgid': 91,
-                    //'text': '录一段话吧录一段话吧录一段话吧录一段话吧录一段话吧\n录两段话吧录两段话吧录两段话吧录两段话吧录两段话吧\n录三段话吧录三段话吧录三段话吧录三段话吧录三段话吧\n录四段话吧录四段话吧录四段话吧录四段话吧录四段话吧\n录五段话吧录五段话吧录五段话吧录五段话吧录五段话吧'
-
-                    var textlist = datastr.text.split('\n');
-                    var textdata = {
-                      packageID: datastr.pkgid,
-                      packages: []
-                    }
-                    var packages = [];
-                    for (var n = 0; n < textlist.length; n++) {
-                      var item = {
-                        textID: n + 1,
-                        text: textlist[n],
-                        textdur: textlist[n].length * 300,
-                        textlen: util.characterStats(textlist[n])
-                      };
-                      if (item.textdur) {
-                        packages.push(item);
-                      }
-
-                    }
-                    textdata.packages = packages;
-                    wx.setStorageSync('data', textdata);
-                    wx.setStorageSync('pkgon', true);
-                    var curP = getCurrentPages();
-                    var thisp = curP[curP.length - 1];//获取当前页面
-                    thisp.setData({
-                      canNewpackage: false,
-                      numpackage: textdata.packageID,
-                      numall: textdata.packages.length,
-                    });
-                    thisp.onShow();
-                  }
-                },
-                /*complete: function() {
-                  wx.switchTab({
-                    url: '/pages/studio/studio',
-                  })
-                }*/
-              });
-            },
           });
+          if (wx.canIUse('createInnerAudioContext')) { //判断是否是新版本微信
+            var datastr = {};
+            var that = this;
+            wx.getStorage({
+              key: 'MyOpenid',
+              success: function (res) {
+                wx.request({
+                  url: 'https://' + app.config.host + '/onFetch',
+                  method: 'GET',
+                  data: {
+                    openid: res.data.openid
+                  },
+                  success: function (res) {
+                    console.log(res.data);
+                    datastr = res.data;
+                    if (datastr.stat == -1) {
+                      wx.showModal({
+                        title: '错误',
+                        content: datastr.msg,
+                        showCancel: false
+                      })
+                    }
+                    else {
+                      //datastr = {
+                      //'pkgid': 91,
+                      //'text': '录一段话吧录一段话吧录一段话吧录一段话吧录一段话吧\n录两段话吧录两段话吧录两段话吧录两段话吧录两段话吧\n录三段话吧录三段话吧录三段话吧录三段话吧录三段话吧\n录四段话吧录四段话吧录四段话吧录四段话吧录四段话吧\n录五段话吧录五段话吧录五段话吧录五段话吧录五段话吧'
+
+                      var textlist = datastr.text.split('\n');
+                      var textdata = {
+                        packageID: datastr.pkgid,
+                        packages: []
+                      }
+                      var packages = [];
+                      for (var n = 0; n < textlist.length; n++) {
+                        var item = {
+                          textID: n + 1,
+                          text: textlist[n],
+                          textdur: textlist[n].length * 300,
+                          textlen: util.characterStats(textlist[n])
+                        };
+                        if (item.textdur) {
+                          packages.push(item);
+                        }
+
+                      }
+                      textdata.packages = packages;
+                      wx.setStorageSync('data', textdata);
+                      wx.setStorageSync('pkgon', true);
+                      var curP = getCurrentPages();
+                      var thisp = curP[curP.length - 1];//获取当前页面
+                      thisp.setData({
+                        canNewpackage: false,
+                        numpackage: textdata.packageID,
+                        numall: textdata.packages.length,
+                      });
+                      thisp.onShow();
+                    }
+                  },
+                  /*complete: function() {
+                    wx.switchTab({
+                      url: '/pages/studio/studio',
+                    })
+                  }*/
+                });
+              },
+            });
+          }
+          else {
+            wx.showModal({
+              title: '提醒',
+              content: '当前微信版本过低，请先更新微信',
+              showCancel: false
+            })
+          }
+          
         }
       }
     })
@@ -795,6 +882,7 @@ Page({
                     'record.score': 0,
                     'record.size': 0,
                     'record.saved': false,
+                    'record.passed': false,
                     'view.TimerID': 0,
                     'view.second': 0,
                     'view.ms': 0,

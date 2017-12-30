@@ -18,6 +18,8 @@
                   <view class="weui-media-box__titly weui-media-box__title_in-texty">{{text.text}}</view>
                     <view class="weui-media-box__info">
                         <view class="weui-media-box__info__meta">{{text.textlen}}字</view>
+                        <view wx:if = "{{record.score >= 90}}" class="weui-media-box__info__meta">得分：{{record.score}}</view>
+                        <view wx:else class="weui-media-box__info__meta weui-media-box__info__meta_extraundone">得分：{{record.score}}  未通过</view>
                         <view wx:if='{{!record.saved}}' class="weui-media-box__info__meta1 weui-media-box__info__meta_extraundone">●未录音</view>
                         <view wx:else class="weui-media-box__info__meta1 weui-media-box__info__meta_extradone">●已录音</view>
                     </view>
@@ -51,6 +53,7 @@
                 <view bindtap='resetbuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">重置</view>
                 <view wx:if='{{!recordingbool && record.duration}}' bindtap='savebuttontap' class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">保存</view>
                 <view wx:else class="weui-form-preview__btn weui-form-preview__btn_disable">保存</view>
+                
             </view>
     </view>
 <view class="weui-cells__title"> </view>
