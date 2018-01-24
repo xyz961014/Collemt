@@ -19,6 +19,8 @@ Page({
     registerInfo:[],
     genders: ["男性", "女性"],
     genderIndex: 0,
+    ages: ["0-5岁", "5-10岁", "10-15岁", "15-20岁", "20-25岁", "25-30岁", "30-35岁", "35-40岁", "40-45岁", "45-50岁", "50-55岁", "55-60岁", "60岁以上"],
+    ageIndex: 4,
     statestr: '注册',
     phonenumerrstr: "请填写正确的手机号",
     phoneplaceholder: "务必输入手机号以领取报酬",
@@ -70,6 +72,7 @@ Page({
     registerInfo=e.detail.value;
     var region = this.data.region;
     var gender = this.data.genders[this.data.genderIndex];
+    var age = this.data.ages[this.data.ageIndex];
     console.log('提交'+region);
     var seturl;
     var that = this;
@@ -98,6 +101,7 @@ Page({
                     openid:res2.data.openid,
                     gender: gender,
                     address: region,
+                    age: age,
                     phonenumber: registerInfo.mobile
                   },
                   success: function (res3) {
@@ -185,5 +189,10 @@ Page({
       genderIndex: e.detail.value
     })
   },
+  bindageChange: function (e) {
 
+    this.setData({
+      ageIndex: e.detail.value
+    })
+  },
 })

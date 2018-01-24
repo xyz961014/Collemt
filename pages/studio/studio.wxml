@@ -18,7 +18,7 @@
                   <view class="weui-media-box__titly weui-media-box__title_in-texty">{{text.text}}</view>
                     <view class="weui-media-box__info">
                         <view class="weui-media-box__info__meta">{{text.textlen}}字</view>
-                        <view wx:if = "{{record.score >= 90}}" class="weui-media-box__info__meta">得分：{{record.score}}</view>
+                        <view wx:if = "{{record.score >= 90}}" class="weui-media-box__info__meta weui-media-box__info__meta_extradone">得分：{{record.score}}</view>
                         <view wx:else class="weui-media-box__info__meta weui-media-box__info__meta_extraundone">得分：{{record.score}}  未通过</view>
                         <view wx:if='{{!record.saved}}' class="weui-media-box__info__meta1 weui-media-box__info__meta_extraundone">●未录音</view>
                         <view wx:else class="weui-media-box__info__meta1 weui-media-box__info__meta_extradone">●已录音</view>

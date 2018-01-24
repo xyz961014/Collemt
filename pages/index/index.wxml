@@ -26,6 +26,11 @@
             </view>
 
             <view class="weui-cell">
+                <view class="weui-cell__bd">年龄</view>
+                <view class="weui-cell__ft">{{age}}</view>
+            </view>
+
+            <view class="weui-cell">
                 <view class="weui-cell__bd">电话号码</view>
                 <view class="weui-cell__ft">{{mobile}}</view>
             </view>

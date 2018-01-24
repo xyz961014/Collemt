@@ -28,6 +28,7 @@ Page({
     logourl: '../../images/logo.png',
     gender: '',
     birthplace: '',
+    age: '',
     mobile: '',
     cur_pkg: 0,
     completed: 0,
@@ -112,6 +113,7 @@ Page({
               that.setData({
                 gender: res2.data.gender,
                 birthplace: res2.data.address,
+                age: res2.data.age,
                 mobile: res2.data.phonenumber,
                 cur_pkg: res2.data.cur_pkg,
                 completed: res2.data.completed,
